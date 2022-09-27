@@ -93,3 +93,6 @@
 5. 当对话框为嵌套对话框时，需要在`dialog-layout`中添加`append-to-body`
 6. 对话框默认中间弹出，要全屏时，添加`fullscreen`，要从侧边滑出，添加`side-bar`
 7. 可在`dialog-layout`传入`dialog-params`对象，实现更多自定义对话框属性
+
+## 更多
+以上文档只是写了大部分内容，更多细节可以查看源码
