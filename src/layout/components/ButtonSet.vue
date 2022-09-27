@@ -59,7 +59,7 @@ export default {
         return []
       }
     },
-    showBtnNum: { // 直接显示的按钮数量，如果隐藏的按钮数为1个，则会直接显示出来
+    showBtnNum: { // 显示的按钮数量，会根据列宽度自适应增加或减少
       type: Number,
       default: 1
     }

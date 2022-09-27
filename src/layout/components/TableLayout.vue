@@ -3,9 +3,9 @@
     <div v-if="show_form" class="form-container">
       <el-form ref="form" :model="form" inline @submit.native.prevent>
         <template v-for="item in formItem">
-          <el-form-item :key="item.prop" :prop="item.prop" :required="'required' in item && item.required === true">
-            <el-input v-if="!item.type || item.type==='input'" v-model="form[item.prop]" :placeholder="`${item.label}`" :type="item.input_type ? item.input_type : 'text'" clearable suffix-icon="el-icon-search" :disabled="'disabled' in item && item.disabled === true" @change="form_submit" />
-            <el-select v-else-if="item.type==='select'" v-model="form[item.prop]" :placeholder="`${item.label}`" clearable :disabled="'disabled' in item && item.disabled === true" @change="form_submit">
+          <el-form-item :key="item.prop" :prop="item.prop" :required="item.hasOwnProperty('required') && item.required === true">
+            <el-input v-if="!item.type || item.type==='input'" v-model="form[item.prop]" :placeholder="`${item.label}`" :type="item.input_type ? item.input_type : 'text'" clearable suffix-icon="el-icon-search" :disabled="item.hasOwnProperty('disabled') && item.disabled === true" @change="form_submit" />
+            <el-select v-else-if="item.type==='select'" v-model="form[item.prop]" :placeholder="`${item.label}`" clearable :disabled="item.hasOwnProperty('disabled') && item.disabled === true" @change="form_submit">
               <el-option v-for="option in item.options" :key="option[item.option_value ? item.option_value : 'id']" :label="option[item.option_label ? item.option_label : 'name']" :value="option[item.option_value ? item.option_value : 'id']" />
             </el-select>
             <el-date-picker
@@ -18,11 +18,11 @@
               :end-placeholder="item.label + '结束'"
               :value-format="date_picker_format[item.type.replace('range', '')]"
               :format="date_picker_format[item.type.replace('range', '')]"
-              :disabled="'disabled' in item && item.disabled === true"
+              :disabled="item.hasOwnProperty('disabled') && item.disabled === true"
               @change="form_submit"
             />
-            <el-time-select v-else-if="item.type==='time'" v-model="form[item.prop]" :placeholder="'选择' + item.label" :disabled="'disabled' in item && item.disabled === true" @change="form_submit" />
-            <el-time-picker v-else-if="item.type==='timerange'" v-model="form[item.prop]" is-range placeholder="选择时间范围" range-separator="至" start-placeholder="开始时间" end-placeholder="结束时间" value-format="yyyy-MM-dd HH:mm:ss" :disabled="'disabled' in item && item.disabled === true" @change="form_submit" />
+            <el-time-select v-else-if="item.type==='time'" v-model="form[item.prop]" :placeholder="'选择' + item.label" :disabled="item.hasOwnProperty('disabled') && item.disabled === true" @change="form_submit" />
+            <el-time-picker v-else-if="['timerange', 'time'].includes(item.type)" v-model="form[item.prop]" :is-range="item.type==='timerange'" :placeholder="`请选择${item.label}`" range-separator="至" :start-placeholder="`${item.label}开始`" :end-placeholder="`${item.label}结束`" value-format="yyyy-MM-dd HH:mm:ss" :disabled="item.hasOwnProperty('disabled') && item.disabled === true" @change="form_submit" />
             <multi-select
               v-else-if="item.type==='multi_select'"
               :value.sync="form[item.prop]"
@@ -33,13 +33,13 @@
               collapse-tags
               :placeholder="`请选择${item.label}`"
               clearable
-              :disabled="'disabled' in item && item.disabled === true"
+              :disabled="item.hasOwnProperty('disabled') && item.disabled === true"
               @change="form_submit"
             />
             <template v-else-if="item.type === 'number_scope'">
-              <el-input v-model="form[item.prop][item.min ? item.min : 'min']" :style="{width:'137px'}" :placeholder="`最小${item.label}`" :disabled="'disabled' in item && item.disabled === true" @change="form_submit" />
+              <el-input v-model="form[item.prop][item.min ? item.min : 'min']" :style="{width:'137px'}" :placeholder="`最小${item.label}`" :disabled="item.hasOwnProperty('disabled') && item.disabled === true" @change="form_submit" />
               <span class="middle-text" style="width: 7px">-</span>
-              <el-input v-model="form[item.prop][item.max ? item.max : 'max']" :style="{width:'138px'}" :placeholder="`最大${item.label}`" :disabled="'disabled' in item && item.disabled === true" @change="form_submit" />
+              <el-input v-model="form[item.prop][item.max ? item.max : 'max']" :style="{width:'138px'}" :placeholder="`最大${item.label}`" :disabled="item.hasOwnProperty('disabled') && item.disabled === true" @change="form_submit" />
             </template>
             <slot v-else-if="item.type === 'slot'" :name="item.slot_name" :scope="item" />
           </el-form-item>
@@ -103,14 +103,14 @@
               :min-width="item.min_width ? (typeof item.min_width == 'number' ? item.min_width+'px' : item.min_width) : '100px'"
               :fixed="item.fixed ? item.fixed : false"
               :sortable="item.sort ? item.sort : false"
-              :show-overflow-tooltip="'overflow' in item ? item.overflow : true"
+              :show-overflow-tooltip="item.hasOwnProperty('overflow') ? item.overflow : true"
             >
               <template slot-scope="{ row, column, $index, store }">
                 <template v-if="item.template">
                   <el-select v-if="item.template==='status_select'" v-model="row[item.field]" @change="change_status(row[id_key], row[item.field], $index)">
                     <el-option v-for="(option, status) in status_options" :key="status" :value="status" :label="option" />
                   </el-select>
-                  <span v-else-if="item.template==='status_str'" :style="{color:row[item.field] in status_color ? status_color[row[item.field]] : 'black'}">
+                  <span v-else-if="item.template==='status_str'" :style="{color:status_color.hasOwnProperty(row[item.field]) ? status_color[row[item.field]] : 'black'}">
                     {{ status_options[row[item.field]] }}
                   </span>
                   <el-image v-else-if="item.template==='img'" :src="combineUrl(row[item.field])" :preview-src-list="[combineUrl(row[item.field])]" class="icon" @click.stop="imageClickHandler" />
@@ -124,7 +124,6 @@
                       :button-data="item.action"
                       :scope="{ row, column, $index, store }"
                       :show-btn-num="item.hasOwnProperty('show_num') ? item.show_num : 2"
-                      :min-width="item.min_width ? (typeof item.min_width == 'number' ? item.min_width : item.min_width.replace('px', '')) : 100"
                     />
                   </template>
                   <slot v-else-if="item.template === 'slot'" :name="item.slot_name" :scope="{ row, column, $index, store }" :row="row" />
@@ -141,9 +140,9 @@
     </div>
     <div v-if="show_pagination" class="pager-container">
       <el-pagination
-        :current-page="form.page"
+        :current-page="form[pager.page_name]"
         :page-sizes="pageSizes"
-        :page-size="form.prePage"
+        :page-size="form[pager.page_size_name]"
         :total="totalCount"
         background
         layout="total, sizes, prev, pager, next, jumper"
@@ -174,7 +173,7 @@ export default {
       // 筛选信息
       type: Object,
       default: function() {
-        return { prePage: 10, page: 1 }
+        return {}
       },
       required: true
     },
@@ -256,18 +255,13 @@ export default {
       table_column_options: this.tableColumn,
       show_list: [],
       summary_row: [],
-      date_picker_placeholder: {
-        date: '日期',
-        datetime: '日期时间',
-        month: '月份',
-        year: '年份'
-      },
       date_picker_format: {
         date: 'yyyy-MM-dd',
         datetime: 'yyyy-MM-dd HH:mm:ss',
         month: 'yyyy-MM',
         year: 'yyyy'
-      }
+      },
+      pager: this.constants.pager
     }
   },
   provide: function() {
@@ -296,7 +290,7 @@ export default {
       return typeof this.$slots.button !== 'undefined'
     },
     show_pagination: function() {
-      return typeof this.form.prePage !== 'undefined' && this.form.prePage > 0
+      return typeof this.form[this.pager.page_size_name] !== 'undefined' && this.form[this.pager.page_size_name] > 0
     },
     table_params: function() {
       const default_params = {
@@ -368,23 +362,23 @@ export default {
   },
   methods: {
     handle_limit_change(val) {
-      this.form.prePage = val
+      this.form[this.pager.page_size_name] = val
       this.paginationType === 'server'
         ? this.reload()
         : this.local_pagination()
     },
     handle_page_change(val) {
-      this.form.page = val
+      this.form[this.pager.page_name] = val
       this.paginationType === 'server'
         ? this.reload()
         : this.local_pagination()
     },
     local_pagination() {
-      let offset = (this.form.page - 1) * this.form.prePage
+      let offset = (this.form[this.pager.page_name] - 1) * this.form[this.pager.page_size_name]
       if (this.firstRowSummary) {
         offset += 1
       }
-      this.show_list = this.list.slice(offset, offset + this.form.prePage)
+      this.show_list = this.list.slice(offset, offset + this.form[this.pager.page_size_name])
       if (this.firstRowSummary) {
         this.show_list.unshift(this.summary_row)
       }
@@ -393,12 +387,12 @@ export default {
       this.fetch_data()
     },
     form_submit() {
-      this.form.page = 1
+      this.form[this.pager.page_name] = 1
       this.reload()
     },
     form_reset() {
       this.$refs.form.resetFields()
-      this.form.page = 1
+      this.form[this.pager.page_name] = 1
       this.reload()
     },
     combineUrl,

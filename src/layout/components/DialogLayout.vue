@@ -43,14 +43,14 @@ export default {
   props: {
     visible: { type: Boolean, default: false, required: true },
     open: { type: Function, default: null }, // 打开对话框时需要执行的方法，默认是init
-    title: { type: String, default: '' },
+    title: { type: String, default: '' }, // 对话框标题
     loading: { type: Boolean, default: false, required: true },
     width: { type: String, default: '50%' },
-    height: { type: String, default: '50vh' },
+    height: { type: String, default: '50vh' }, // 对话框高度，不包括头部和尾部
     top: { type: String, default: '15vh' },
-    fullscreen: { type: Boolean, default: false },
+    fullscreen: { type: Boolean, default: false }, // 对话框全屏显示
     appendToBody: { type: Boolean, default: false }, // 当前对话框为嵌套时，必须设置为true
-    showFooter: { type: Boolean, default: true },
+    showFooter: { type: Boolean, default: true }, // 显示尾部
     dialogParams: { // 对话框参数
       type: Object,
       default: function() {

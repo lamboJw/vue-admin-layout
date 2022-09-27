@@ -15,28 +15,28 @@
 </template>
 
 <script>
-import { dialog_common } from "@/layout/mixin/dialog_common";
-import { getSplitChannel, splitFlow } from "@/api/orderPrepare";
+import { dialog_common } from '@/layout/mixin/dialog_common'
+import { getSplitChannel, splitFlow } from '@/api/orderPrepare'
 
 export default {
-  name: "DialogTemplate",
+  name: 'DialogTemplate',
   mixins: [dialog_common],
   data() {
     return {
       info: {
-        name: "",
-      },
-    };
+        name: ''
+      }
+    }
   },
   methods: {
     init_api() {
-      return getSplitChannel(this.id);
+      return getSplitChannel(this.id)
     },
     submit_api() {
-      return splitFlow(this.info);
-    },
-  },
-};
+      return splitFlow(this.info)
+    }
+  }
+}
 </script>
 
 <style scoped></style>

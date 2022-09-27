@@ -12,16 +12,13 @@ export const index_common = {
   },
   data() {
     return {
-      form: {
-        page: 1,
-        prePage: 20
-      },
+      form: {},
       list: [],
       list_loading: true,
       form_item: [],
       table_column: [],
       total_count: 0,
-      page_sizes: [10, 15, 20, 50, 100, 200],
+      page_sizes: this.constants.pager.page_sizes,
       status_options: ['下线', '上线', '待上线'], // 状态值对象，不要使用异步方法来修改该值，否则tableLayout组件获取不到新值
       status_color: ['#f78989', '#85ce61', '#ebb563'], // 状态值对应颜色数组，用于显示状态文字，不要使用异步方法来修改该值，否则tableLayout组件获取不到新值
       old_status_list: {}, // 记录列表中旧状态值
@@ -43,13 +40,17 @@ export const index_common = {
       status_key: this.status_key
     }
   },
+  created() {
+    this.form[this.constants.pager.page_name] = 1
+    this.form[this.constants.pager.page_size_name] = this.constants.pager.default_page_size
+  },
   methods: {
     fetch_api() {
       this.$message.error('未定义查询接口')
       return Promise.reject()
     },
     fetch_callback(result) {
-      this.total_count = result.total
+      this.total_count = result.count
       this.list = result.data
       if (this.list.length > 0 && this.status_key in this.list[0]) {
         this.list.map((item, index) => {

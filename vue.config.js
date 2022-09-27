@@ -30,17 +30,17 @@ module.exports = {
   lintOnSave: process.env.NODE_ENV === 'development',
   productionSourceMap: false,
   devServer: {
-    port: port,
+    port: port, // 开发服务器端口
     open: true,
-    host: 'www.sdk.com',
+    host: 'www.sdk.com', // 开发环境下前端域名
     overlay: {
       warnings: false,
       errors: true
     },
     proxy: {
       '/backend': {
-        // 此处的写法，目的是为了 将 /backend 替换成 http://www.sdk.com/
-        target: 'http://www.sdk.com/',
+        // 此处的写法，目的是为了 将uri前缀为 /backend 的请求，域名都换成 http://www.sdk.com，以解决跨域问题
+        target: 'http://www.sdk.com/', // 后端域名
         // 允许跨域
         changeOrigin: true,
         ws: true

@@ -21,32 +21,35 @@
 </template>
 
 <script>
-import OrderDetail from "@/views/order-prepare/order_detail";
-import { index_common } from "@/layout/mixin/index_common";
-import { getList, deletePrepare } from "@/api/orderPrepare";
+import OrderDetail from '@/views/order-prepare/order_detail'
+import { index_common } from '@/layout/mixin/index_common'
+import { getList, del, changeStatus } from '@/api/index_template'
 
 export default {
-  name: "IndexTemplate",
+  name: 'IndexTemplate',
   components: {
-    OrderDetail,
+    OrderDetail
   },
   mixins: [index_common],
   data() {
     return {
       form: {},
-      form_item: [{ type: "input", label: "名称", prop: "name" }],
-      table_column: [{ title: "操作", template: "action", overflow: false }],
-    };
+      form_item: [{ type: 'input', label: '名称', prop: 'name' }],
+      table_column: [{ title: '操作', template: 'action', overflow: false }]
+    }
   },
   methods: {
     fetch_api() {
-      return getList(this.form);
+      return getList(this.form)
     },
     del_api(id) {
-      return deletePrepare(id);
+      return del(id)
     },
-  },
-};
+    changeStatus(id, status) {
+      return changeStatus(id, status)
+    }
+  }
+}
 </script>
 
 <style scoped></style>
