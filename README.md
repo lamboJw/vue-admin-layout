@@ -36,7 +36,7 @@
         + `option_value`：下拉选项值，默认为id；
         + `option_label`：下拉选项标签，默认为name
       + `date`、`daterange`、`datetime`、`datetimerange`、`month`、`monthrange`、`year`：日期、日期时间、月份、年份选择框，与el-date-picker的type对应。
-      + `time`、`timerange`：时间选择框，与。
+      + `time`、`timerange`：时间选择框，与时间范围选择框。
       + `multi_select`：下拉多选框。额外元素：
         + `options`：下拉选项；
         + `option_value`：下拉选项值，默认为id；
@@ -45,6 +45,11 @@
         + `min`：最小值对应的key，默认min；
         + `max`：最大值对应的key，默认max；
         + `prop`：对应的数据必须是包含min和max的对象
+      + `text`：直接显示文字。
+      + `radio`：单选框。额外元素：
+        + `options`：单选框选项；
+        + `option_value`：单选框选项值，默认为id；
+        + `option_label`：单选框选项标签，默认为name
       + `slot`：自定义插槽，绑定了当前item，添加`<template v-slot:slot_name="{item}">`填写插槽内容。额外元素：
         + `slot_name`：插槽名称
 4. 填写`table_column`数组，用于渲染数据表格，每个数组元素为一个对象，对象元素包括：
@@ -54,15 +59,25 @@
      + `index`：行索引
      + `expand`：展开按钮，需实现插槽`<template v-slot:table_expand="{row}"></template>`
    + `template`：单元格渲染特定模版：
-     + `status_str`：显示状态文字，根据`status_options`对应本行的`status_key`的值
-     + `status_select`：状态下拉修改，变更后会自动调用`change_status`方法
+     + `select`：下拉选择，额外元素：
+       + `options`：下拉选项；
+       + `option_value`：下拉选项值，默认为id；
+       + `option_label`：下拉选项标签，默认为name；
+       + `change`：变更下拉框时，触发的方法，传入参数有：
+         + `row`：当前行数据
+         + `new_value`：变更后的值
+     + `str_map`：映射文字，额外元素：
+       + `str_map`：映射对象
+       + `color`：映射的颜色，可选
      + `img`：展示图片，点击放大
      + `input`：编辑框，额外元素：
-       + `change`：修改编辑框内容时，触发的方法，传入参数有本行的`id_key`对应的值，以及修改后的内容
+       + `change`：修改编辑框内容时，触发的方法，传入参数有：
+         + `row`：当前行数据
+         + `new_value`：变更后的内容
      + `icon`：展示系统图标
      + `html`：渲染HTML
      + `function`：渲染方法返回的值，额外元素：
-       + `function`：要执行的方法，传入参数为当前行所有内容
+       + `function`：要执行的方法，传入参数为`row`当前行所有内容
      + `slot`：动态插槽，额外元素：
        + `slot_name`：插槽名称，需要实现`<template v-slot:slot_name="{scope}"></template>`
      + `action`：操作列专用，用于显示操作按钮，若按钮过多，或超过列宽，则会隐藏到按钮盒子中，额外元素：
@@ -70,7 +85,7 @@
        + `action`：对象数组，每个对象包含以下元素：
          + `type`: 按钮类型，对应el-button的type参数，默认text
          + `class`：按钮应用的样式类，选填
-         + `color`：按钮颜色，如果使用text类型按钮，可以使用这个参数修改按钮字体颜色，默认primary的颜色
+         + `color`：按钮颜色，如果使用text类型按钮，可以使用这个参数修改按钮字体颜色，预设了`success`、`warning`、`danger`、`primary`、`info`、`normal`，对应element-ui的颜色，默认`primary`的颜色，也可以传入十六进制的颜色值
          + `size`：按钮大小，默认small
          + `click`：点击按钮执行的操作，例：`({row, column, $index, store}) => {this.open_dialog('edit', row.id)}`
          + `v-if`：用于判断按钮显示条件，返回bool值，例：`({row, column, $index, store}) => {return true}`
@@ -79,9 +94,10 @@
      + `copy_text`：点击单元格复制单元格内容
 5. 操作列action无法实现的，可以在`<template v-slot:other_tools={row}>`中实现
 6. 有额外的按钮时，可以在`<template v-slot:button>`插槽中添加
-7. 开启自定义列显示，在`table-layout`中添加`table-column-storage-name`参数，指定一个名称，当修改了显示列后，会把配置保存到localstorage中，下次打开自动读取配置
-8. 显示批量删除按钮，在`table-layout`中添加`batch-del-btn=true`，且列表开启多选，如果按钮需要权限管理，再添加`batch-del-permission='权限名'`，然后实现`batch_del_api(selection)`方法，调用批量删除接口
-9. 可在`table-layout`传入`table-params`对象，实现更多自定义表格属性
+7. 开启自定义列显示，在`form-table-layout`中添加`table-column-storage-name`参数，指定一个名称，当修改了显示列后，会把配置保存到localstorage中，下次打开自动读取配置
+8. 可在`form-table-layout`传入`table-params`对象，实现更多自定义表格属性
+9. 可以设置`show-item-num`，控制显示的表单筛选项数量。
+10. 传入`form-item-storage-name`后，会记录每次筛选时用到的筛选项，超过一定次数后，会进行排序
 
 ### 对话框
 1. 复制`src/layout/dialog_template.vue`到对应目录，修改名称，实现几个方法，返回一个Promise，即刻实现对应操作：
@@ -93,6 +109,7 @@
 5. 当对话框为嵌套对话框时，需要在`dialog-layout`中添加`append-to-body`
 6. 对话框默认中间弹出，要全屏时，添加`fullscreen`，要从侧边滑出，添加`side-bar`
 7. 可在`dialog-layout`传入`dialog-params`对象，实现更多自定义对话框属性
+8. 如果打开对话框所需的参数不只一个`id`，可以重写`open_dialog_callback`方法，方法最后记得添加`this.visible = true`
 
 ## 更多
 以上文档只是写了大部分内容，更多细节可以查看源码

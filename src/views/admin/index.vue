@@ -1,5 +1,5 @@
 <template>
-  <table-layout ref="indexTable" :form="form" :form-item="form_item" :total-count="total_count" :page-sizes="page_sizes" :list="list" :list-loading="list_loading" :table-column="table_column" :table-column-btn="false">
+  <form-table-layout ref="indexTable" :form="form" :form-item="form_item" :total-count="total_count" :page-sizes="page_sizes" :list="list" :list-loading="list_loading" :table-column="table_column" :table-column-btn="false">
     <template v-slot:button>
       <el-button type="primary" @click="open_dialog('edit', 0)">新增</el-button>
     </template>
@@ -8,7 +8,7 @@
       <select-role ref="select_role" />
       <edit-password ref="edit_password" />
     </template>
-  </table-layout>
+  </form-table-layout>
 </template>
 
 <script>
@@ -32,7 +32,6 @@ export default {
         name: '',
         mobile: ''
       },
-      status_options: ['禁止', '启用'],
       form_item: [
         { type: 'input', prop: 'name', label: '名称' },
         { type: 'input', prop: 'mobile', label: '手机号码' }
@@ -42,7 +41,7 @@ export default {
         { field: 'name', title: '用户名' },
         { field: 'icon', title: '头像', template: 'img' },
         { field: 'mobile', title: '手机号码' },
-        { field: 'status', title: '状态', template: 'status_str' },
+        { field: 'status', title: '状态', template: 'str_map', str_map: { 0: '禁止', 1: '启用' }},
         { field: 'created_at', title: '创建时间' },
         { field: 'updated_at', title: '修改时间' },
         {
@@ -53,7 +52,7 @@ export default {
             },
             {
               text: '修改密码',
-              color: this.constants.color.warning,
+              color: 'warning',
               click: ({ row }) => this.open_dialog('edit_password', row.id)
             }
           ]

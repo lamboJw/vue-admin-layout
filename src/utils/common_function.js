@@ -1,11 +1,7 @@
 import { Message } from 'element-ui'
+import { saveAs } from 'file-saver'
 
-/**
- * 根据Date类型变量，返回格式化的日期时间，支持年、月、日、时、分、秒
- * @param {Date} date
- * @param {string} format
- * @returns {string}
- */
+// 根据Date类型变量，返回格式化的日期时间，支持年、月、日、时、分、秒
 export function getDateTime(date, format = 'yyyy-MM-dd') {
   const year = date.getFullYear()
   let month = date.getMonth() + 1
@@ -18,8 +14,23 @@ export function getDateTime(date, format = 'yyyy-MM-dd') {
   hour = hour < 10 ? '0' + hour : hour
   minute = minute < 10 ? '0' + minute : minute
   second = second < 10 ? '0' + second : second
-  return format.replace('yyyy', year).replace('MM', month).replace('dd', day)
-    .replace('HH', hour).replace('mm', minute).replace('ss', second)
+  return format
+    .replace('yyyy', year)
+    .replace('MM', month)
+    .replace('dd', day)
+    .replace('HH', hour)
+    .replace('mm', minute)
+    .replace('ss', second)
+}
+
+// 获取某天的当前月的第一天
+export function getDayMonthFirstDay(dateValue) {
+  const date = new Date(dateValue)
+  const year = date.getFullYear()
+  let month = date.getMonth() + 1
+  const day = '01'
+  month = month < 10 ? '0' + month : month
+  return year + '-' + month + '-' + day
 }
 
 // 复制文本到剪贴板
@@ -27,18 +38,21 @@ export function copyToClipboard(textToCopy) {
   // navigator clipboard 需要https等安全上下文
   if (navigator.clipboard && window.isSecureContext) {
     // navigator clipboard 向剪贴板写文本
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      Message.success('复制成功')
-    }).catch(() => {
-      Message.error('复制失败')
-    })
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => {
+        Message.success('复制成功')
+      })
+      .catch(() => {
+        Message.error('复制失败')
+      })
   } else {
     // 创建text area
     const textArea = document.createElement('textarea')
     textArea.value = textToCopy
     // 使text area不在viewport，同时设置不可见
     textArea.style.position = 'absolute'
-    textArea.style.opacity = '0'
+    textArea.style.opacity = 0
     textArea.style.left = '-999999px'
     textArea.style.top = '-999999px'
     document.body.appendChild(textArea)
@@ -48,33 +62,106 @@ export function copyToClipboard(textToCopy) {
       // 执行复制命令并移除文本框
       document.execCommand('copy') ? res() : rej()
       textArea.remove()
-    }).then(() => {
-      Message.success('复制成功')
-    }).catch(() => {
-      Message.error('复制失败')
     })
+      .then(() => {
+        Message.success('复制成功')
+      })
+      .catch(() => {
+        Message.error('复制失败')
+      })
   }
 }
 
-/**
- * 组装链接，根据链接特征选择组装域名
- * @param {string} url
- * @returns {string}
- */
+export function getFileSuffix(fileName) {
+  return fileName.substring(fileName.lastIndexOf('.') + 1)
+}
+
 export function combineUrl(url) {
   if (!url) return url
   if (url.indexOf('http') === 0) return url
-  if (url.indexOf('static/') !== -1) {
-    url = 'https://wx-hy.921.com/' + (url.indexOf('/') === 0 ? url.substr(1) : url)
-  } else {
-    url = process.env.VUE_APP_HOST + url
-  }
+  url = process.env.VUE_APP_BASE_API + url
   return url
 }
 
 /**
- * 八进制颜色值（#c9c9c9）转rgb颜色值
- * @param {string} hex
+ * 获取两个月份相差多少个月
+ * @param startMonth
+ * @param endMonth
+ * @returns {number}
+ */
+export function diffMonths(startMonth, endMonth) {
+  const m1 = startMonth.split('-')
+  const sMonths = parseInt(m1[0]) * 12 + parseInt(m1[1])
+  const m2 = endMonth.split('-')
+  const eMonths = parseInt(m2[0]) * 12 + parseInt(m2[1])
+  return Math.abs(sMonths - eMonths)
+}
+
+/**
+ * 获取文字宽度
+ * @param text
+ * @param fontSize
+ * @returns {number}
+ */
+export function getTextWidth(text, fontSize) {
+  // 创建临时元素
+  const _span = document.createElement('span')
+  // 放入文本
+  _span.innerText = text
+  // 设置文字大小
+  _span.style.fontSize = fontSize + 'px'
+  // span元素转块级
+  _span.style.position = 'absolute'
+  // span放入body中
+  document.body.appendChild(_span)
+  // 获取span的宽度
+  const width = _span.offsetWidth
+  // 从body中删除该span
+  document.body.removeChild(_span)
+  // 返回span宽度
+  return width
+}
+
+/**
+ * 获取从start到end的数组
+ * @param start 开始
+ * @param end 结束，如果不传该值，则生成从0开始到start的数组
+ * @returns Array
+ */
+export function arrayRange(start, end = null) {
+  if (end === null) {
+    end = start
+    start = 0
+  }
+  const length = end - start
+  return Array.from({ length }, (_, index) => index + start)
+}
+
+/**
+ * 下载url对应的文件
+ * @param url
+ * @param name
+ */
+export const downloadUrl = (url, name = '') => {
+  fetch(url)
+    .then(res => res.blob())
+    .then(blob => {
+      let fileName = ''
+      if (name === '' || name === undefined) {
+        fileName = url.split('/')[url.split('/').length - 1]
+      } else {
+        fileName = name
+      }
+      saveAs(blob, fileName)
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
+
+/**
+ * 十六进制颜色值转rgb
+ * @param hex
  * @returns {{r: number, b: number, g: number}|null}
  */
 export function hexToRgb(hex) {
@@ -86,32 +173,172 @@ export function hexToRgb(hex) {
       g: parseInt(result[2], 16),
       b: parseInt(result[3], 16)
     }
-    : hex
-}
-
-export function rgbToHex(rgb) {
-  const result = /^rgb\((\d{1,3}),\s?(\d{1,3}),\s?(\d{1,3})\s?\)$/i.exec(rgb)
-  if (result) {
-    const r = (+result[1]).toString(16)
-    const g = (+result[2]).toString(16)
-    const b = (+result[3]).toString(16)
-    return `#${r}${g}${b}`
-  } else {
-    return rgb
-  }
+    : null
 }
 
 /**
- * 获取从start到end的数组
- * @param {number} start 开始
- * @param {number|null} end 结束，如果不传该值，则生成从0开始到start的数组
- * @returns Array
+ * 对象key=>value转成数组形式
+ * @param obj
+ * @param key key对应的数组key
+ * @param value value对应的数组key
+ * @returns {*[]}
  */
-export function arrayRange(start, end = null) {
-  if (end === null) {
-    end = start
-    start = 0
+export function objectToArray(obj, key = 'id', value = 'name') {
+  const arr = []
+  for (const i in obj) {
+    arr.push({ [key]: i, [value]: obj[i] })
   }
-  const length = end - start
-  return Array.from({ length }, (_, index) => index + start)
+  return arr
+}
+
+/**
+ * 判断对象是否存在key值
+ * @param obj
+ * @param key
+ * @returns {boolean}
+ */
+export function objectHasKey(obj, key) {
+  return !!Object.getOwnPropertyDescriptor(obj, key)
+}
+
+/**
+ * 获取对象中的key对应的值
+ * @param obj
+ * @param key
+ * @param default_val
+ * @returns {*|null}
+ */
+export function objectGetValue(obj, key, default_val = null) {
+  return this.objectHasKey(obj, key) ? obj[key] : default_val
+}
+
+export function objectLength(obj) {
+  return Object.keys(obj).length
+}
+
+/**
+ * 条件过滤对象
+ * @param obj
+ * @param filter 过滤条件方法，传值有对象的key和val
+ * @returns Object
+ */
+export function objectFilter(obj, filter) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([key, val]) => filter(key, val))
+  )
+}
+
+/**
+ * 对象数组中根据key匹配val，获取该对象在数组中的下标
+ * @param array 对象数组，[{...}, {...}]
+ * @param key 对象中的某个key
+ * @param val 要匹配的值
+ * @returns Number 匹配到的下标
+ */
+export function objectArrayFindIndex(array, key, val) {
+  return array?.findIndex((item) => item[key] === val)
+}
+
+/**
+ * 获取客户端高度
+ * @returns {number}
+ */
+export function getClientHeight() {
+  let clientHeight
+  if (document.body.clientHeight && document.documentElement.clientHeight) {
+    clientHeight =
+      document.body.clientHeight < document.documentElement.clientHeight
+        ? document.body.clientHeight
+        : document.documentElement.clientHeight
+  } else {
+    clientHeight =
+      document.body.clientHeight > document.documentElement.clientHeight
+        ? document.body.clientHeight
+        : document.documentElement.clientHeight
+  }
+  return clientHeight
+}
+
+/**
+ * 判断是否为数字
+ * @param value
+ * @returns {boolean}
+ */
+export function isNumeric(value) {
+  return !isNaN(parseFloat(value)) && isFinite(value)
+}
+
+export function getWidth(width, unit = 'px') {
+  if (isNumeric(width)) {
+    return width + unit
+  }
+  return width
+}
+
+/**
+ * 格式化数字
+ * @param number
+ * @param {number} decimals 保留小数位
+ * @param {string} thousands_sep 千位分隔符
+ * @returns {string|*}
+ */
+export function numberFormat(number, decimals = 0, thousands_sep = '') {
+  if (number === null || number === '' || number === undefined || !isNumeric(number)) {
+    return number
+  }
+  number = number + ''
+  const arr = number.split('.')
+  const negative = arr[0].indexOf('-') !== -1
+  arr[0] = parseInt(arr[0]).toString()
+  if (negative && arr[0] === '0') {
+    arr[0] = '-' + arr[0]
+  }
+  if (typeof arr[1] === 'undefined') {
+    arr[1] = ''
+  }
+  if (arr[1].length > decimals) {
+    arr[1] = arr[1].slice(0, decimals)
+  }
+  number = decimals > 0 && number.indexOf('.') !== -1 ? arr.join('.') : arr[0]
+  return thousands_sep !== '' ? number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep) : number.toString()
+}
+
+/**
+ * 加载外部JS
+ * @param src
+ * @returns {Promise<unknown>}
+ */
+export function loadJs(src) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = src
+    document.body.appendChild(script)
+    script.onload = () => {
+      resolve()
+    }
+    script.onerror = () => {
+      reject()
+    }
+  })
+}
+
+/**
+ * 加载外部CSS
+ * @param src
+ * @returns {Promise<unknown>}
+ */
+export function loadCss(src) {
+  return new Promise((resolve, reject) => {
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = src
+    document.body.appendChild(link)
+    link.onload = () => {
+      resolve()
+    }
+    link.onerror = () => {
+      reject()
+    }
+  })
 }

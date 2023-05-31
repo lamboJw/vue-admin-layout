@@ -6,6 +6,8 @@
  */
 
 import dialogLayout from '@/layout/components/DialogLayout'
+import { objectHasKey } from '@/utils/common_function'
+import { throttle } from '@/utils/decorator'
 
 export const dialog_common = {
   components: {
@@ -17,14 +19,7 @@ export const dialog_common = {
       id: 0,
       visible: false,
       loading: false,
-      status_options: ['下线', '上线', '待上线'],
-      ueditor_config: {
-        autoHeightEnabled: false,
-        autoFloatEnabled: true,
-        initialFrameWidth: 800,
-        initialFrameHeight: 300,
-        UEDITOR_HOME_URL: process.env.VUE_APP_BASE_API + '/js/ueditor/'
-      },
+      need_reload: false,
       form_ref: 'dialog_form'
     }
   },
@@ -39,17 +34,45 @@ export const dialog_common = {
   computed: {
     dialog_title: function() {
       return this.id === 0 ? '新增' : '编辑'
+    },
+    true_form_ref: function() {
+      if (!this.form_ref) return null
+      let form_ref = [this.form_ref]
+      if (this.form_ref.indexOf('.') !== -1) {
+        // 适配多层级组件
+        form_ref = this.form_ref.split('.')
+      }
+      let ref = this
+      for (let i = 0; i < form_ref.length; i++) {
+        if (typeof ref.$refs[form_ref[i]] !== 'undefined') {
+          ref = ref.$refs[form_ref[i]]
+        } else {
+          ref = null
+          break
+        }
+      }
+      return ref
     }
   },
   methods: {
-    close_dialog(reload = false) {
-      if (typeof this.$refs[this.form_ref] !== 'undefined') {
-        this.$refs[this.form_ref].resetFields()
+    reset_form_fields() {
+      // 重置表单
+      if (this.true_form_ref) {
+        if (this.true_form_ref.$vnode.tag.indexOf('FormLayout') !== -1) {
+          this.true_form_ref.reset_fields()
+        } else {
+          this.true_form_ref.resetFields()
+        }
       }
+    },
+    before_close() {},
+    close_dialog(reload = null) {
+      this.reset_form_fields()
+      this.before_close()
+      this.id = 0
       this.visible = false
       this.loading = false
-      this.id = 0
-      if (reload) {
+      if (reload || (reload === null && this.need_reload)) {
         this.reload()
       }
     },
@@ -64,22 +87,20 @@ export const dialog_common = {
     },
     init_callback(result) {
       for (const i in this.info) {
-        // eslint-disable-next-line no-prototype-builtins
-        if (result.hasOwnProperty(i)) {
+        if (objectHasKey(result, i)) {
           this.info[i] = result[i]
         }
       }
     },
-    after_init(result) {},
+    after_init() {},
     init() {
       this.loading = true
       this.init_api()
         .then((ret) => {
-          this.loading = false
           this.init_callback(ret.result)
           this.after_init(ret.result)
         })
-        .catch(() => {
+        .finally(() => {
           this.loading = false
         })
     },
@@ -95,32 +116,31 @@ export const dialog_common = {
         type: 'success'
       })
     },
-    submit(reload = true) {
-      if (typeof this.$refs[this.form_ref] !== 'undefined') {
-        this.$refs[this.form_ref].validate((valid) => {
+    @throttle(2000)
+    submit() {
+      if (this.true_form_ref?.validate) {
+        this.true_form_ref.validate((valid) => {
           if (valid) {
-            this.submit_api()
-              .then((result) => {
-                this.submit_callback(result.result)
-                this.close_dialog(reload)
-              })
-              .catch((err) => {
-                console.log(err)
-              })
+            this.do_submit()
           } else {
             console.log('表单验证失败')
           }
         })
       } else {
-        this.submit_api()
-          .then((result) => {
-            this.submit_callback(result.result)
-            this.close_dialog(reload)
-          })
-          .catch((err) => {
-            console.log(err)
-          })
+        this.do_submit()
       }
+    },
+    do_submit() {
+      this.loading = true
+      this.submit_api()
+        .then((result) => {
+          this.submit_callback(result.result)
+          this.close_dialog(true)
+        })
+        .catch(() => {})
+        .finally(() => {
+          this.loading = false
+        })
     }
   }
 }

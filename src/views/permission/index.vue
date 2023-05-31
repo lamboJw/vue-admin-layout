@@ -1,10 +1,10 @@
 <template>
-  <table-layout ref="indexTable" :form="form" :form-item="form_item" :list="filter_list" :list-loading="list_loading" :table-params="table_params" :form-submit-btn="false" :table-column="table_column" :table-column-btn="false">
+  <form-table-layout ref="indexTable" :form="form" :form-item="form_item" :list="filter_list" :list-loading="list_loading" :table-params="table_params" :form-submit-btn="false" :table-column="table_column" :table-column-btn="false">
     <template v-slot:dialog>
       <edit ref="edit" />
       <add ref="add" />
     </template>
-  </table-layout>
+  </form-table-layout>
 </template>
 
 <script>
@@ -41,17 +41,16 @@ export default {
           title: '操作', template: 'action', action: [
             {
               text: '添加',
-              color: this.constants.color.primary,
               click: ({ row }) => this.open_dialog('add', row.id)
             },
             {
               text: '编辑',
-              color: this.constants.color.primary,
+              color: 'primary',
               click: ({ row }) => this.open_dialog('edit', row.id)
             },
             {
               text: '删除',
-              color: this.constants.color.danger,
+              color: 'danger',
               click: ({ row }) => this.del(row.id)
             }
           ],

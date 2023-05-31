@@ -1,5 +1,5 @@
 <template>
-  <table-layout ref="indexTable" :form="form" :form-item="form_item" :total-count="total_count" :page-sizes="page_sizes" :list="list" :list-loading="list_loading" :table-column="table_column" :table-column-btn="false">
+  <form-table-layout ref="indexTable" :form="form" :form-item="form_item" :total-count="total_count" :page-sizes="page_sizes" :list="list" :list-loading="list_loading" :table-column="table_column" :table-column-btn="false">
     <template v-slot:button>
       <el-button type="primary" @click="open_dialog('edit', 0)">新增</el-button>
     </template>
@@ -8,7 +8,7 @@
       <impower ref="impower" />
       <special ref="special" />
     </template>
-  </table-layout>
+  </form-table-layout>
 </template>
 
 <script>
@@ -43,12 +43,11 @@ export default {
           title: '操作', template: 'action', action: [
             {
               text: '授权',
-              color: this.constants.color.warning,
+              color: 'warning',
               click: ({ row }) => this.open_dialog('impower', row.id)
             },
             {
               text: '特殊',
-              color: this.constants.color.primary,
               click: ({ row }) => this.open_dialog('special', row.id)
             }
           ], overflow: false, min_width: '120px'

@@ -1,19 +1,22 @@
 <template>
-  <div v-if="show_button.length > 0">
-    <template v-for="index in arrayRange(show_num)">
-      <el-button
-        :key="index"
-        :ref="`btn_${index}`"
-        :type="show_button[index].hasOwnProperty('type') ? show_button[index].type : 'text'"
-        :class="show_button[index].hasOwnProperty('class') ? show_button[index].class : ''"
-        :style="show_button[index].style"
-        :size="show_button[index].hasOwnProperty('size') ? show_button[index].size : 'small'"
-        @click="show_button[index].hasOwnProperty('click') ? show_button[index].click(scope) : () => {}"
-        @mouseover.native="set_background_color(index)"
-        @mouseout.native="set_background_color(index, 'out')"
-      >
-        {{ typeof show_button[index].text === "function" ? show_button[index].text(scope) : show_button[index].text }}
-      </el-button>
+  <div>
+    <slot ref="default_slot" name="default" />
+    <template v-if="show_button.length > 0">
+      <template v-for="index in arrayRange(show_num)">
+        <el-button
+          :key="index"
+          :ref="`btn_${index}`"
+          :type="show_button[index].getAttr('type', 'text')"
+          :class="show_button[index].getAttr('class', '')"
+          :style="show_button[index].style"
+          :size="show_button[index].getAttr('size', 'small')"
+          @click="show_button[index].hasKey('click') ? show_button[index].click(scope) : () => {}"
+          @mouseover.native="set_background_color(index)"
+          @mouseout.native="set_background_color(index, 'out')"
+        >
+          {{ typeof show_button[index].text === 'function' ? show_button[index].text(scope) : show_button[index].text }}
+        </el-button>
+      </template>
     </template>
     <template v-if="popover_num > 0">
       <el-popover trigger="hover" :width="popover_width" placement="bottom" style="margin-left: 10px" popper-class="button-set-popover">
@@ -21,15 +24,15 @@
           <div :key="index" class="popover_btn" style="text-align: center">
             <el-button
               :ref="`btn_${index}`"
-              :type="show_button[index].hasOwnProperty('type') ? show_button[index].type : 'text'"
-              :class="show_button[index].hasOwnProperty('class') ? [show_button[index].class, 'popover_btn_item'] : 'popover_btn_item'"
+              :type="show_button[index].getAttr('type', 'text')"
+              :class="show_button[index].hasKey('class') ? [show_button[index].class, 'popover_btn_item'] : 'popover_btn_item'"
               :style="Object.assign({width: popover_width+'px'}, show_button[index].style)"
-              :size="show_button[index].hasOwnProperty('size') ? show_button[index].size : 'small'"
-              @click="show_button[index].hasOwnProperty('click') ? show_button[index].click(scope) : () => {}"
+              :size="show_button[index].getAttr('size', 'normal')"
+              @click="show_button[index].hasKey('click') ? show_button[index].click(scope) : () => {}"
               @mouseover.native="set_background_color(index)"
               @mouseout.native="set_background_color(index, 'out')"
             >
-              {{ typeof show_button[index].text === "function" ? show_button[index].text(scope) : show_button[index].text }}
+              {{ typeof show_button[index].text === 'function' ? show_button[index].text(scope) : show_button[index].text }}
             </el-button>
           </div>
         </template>
@@ -45,21 +48,24 @@ import { arrayRange, hexToRgb } from '@/utils/common_function'
 export default {
   name: 'ButtonSet',
   props: {
-    scope: { // 单元格scope参数
+    scope: {
+      // 单元格scope参数
       type: Object,
       required: true,
       default: function() {
         return {}
       }
     },
-    buttonData: { // 按钮配置
+    buttonData: {
+      // 按钮配置
       type: Array,
       required: true,
       default: function() {
         return []
       }
     },
-    showBtnNum: { // 显示的按钮数量，会根据列宽度自适应增加或减少
+    showBtnNum: {
+      // 显示的按钮数量，会根据列宽度自适应增加或减少
       type: Number,
       default: 1
     }
@@ -72,15 +78,24 @@ export default {
   computed: {
     show_button: function() {
       const show_button = this.buttonData.filter((item) => {
-        // eslint-disable-next-line no-prototype-builtins
-        if (item.hasOwnProperty('v-if')) {
+        if (item.hasKey('v-if')) {
           if (!item['v-if'](this.scope)) {
             return false
           }
         }
-        // eslint-disable-next-line no-prototype-builtins
-        if (item.hasOwnProperty('v-permission')) {
-          if (this.$store.getters.role && !this.$store.getters.role.contains(item['v-permission'])) {
+        if (item.hasKey('v-permission')) {
+          if (!this.$store.getters.role) {
+            return false
+          }
+          if (Array.isArray(item['v-permission'])) {
+            let res = false
+            item['v-permission'].forEach((val) => {
+              if (this.$store.getters.role.includes(val)) {
+                res = true
+              }
+            })
+            return res
+          } else if (!this.$store.getters.role.includes(item['v-permission'])) {
             return false
           }
         }
@@ -88,8 +103,34 @@ export default {
       })
       show_button.map((item, index) => {
         const style = {}
-        // eslint-disable-next-line no-prototype-builtins
-        style.color = item.hasOwnProperty('color') ? item.color : '#409EFF'
+        if (!item.hasKey('color')) {
+          style.color = '#409EFF'
+        } else if (item.color[0] !== '#') {
+          switch (item.color) {
+            case 'success':
+              style.color = '#67C23A'
+              break
+            case 'warning':
+              style.color = '#E6A23C'
+              break
+            case 'danger':
+              style.color = '#F56C6C'
+              break
+            case 'info':
+              style.color = '#909399'
+              break
+            case 'normal':
+              style.color = '#606266'
+              break
+            case 'primary':
+            default:
+              style.color = '#409EFF'
+          }
+        } else {
+          style.color = item.color
+        }
+        const rgb = this.hexToRgb(style.color)
+        style.background_color = `rgba(${rgb.r},${rgb.g},${rgb.b},0.10)`
         show_button[index].style = style
       })
       return show_button
@@ -98,10 +139,17 @@ export default {
       let show_btn_num = this.showBtnNum
       let show_width = 44 // 单元格基本的20px padding，加上 省略号 宽度
       const font_size = 14
-      const max_num = this.show_button.length > this.showBtnNum ? this.showBtnNum : this.show_button.length
+      const max_num =
+        this.show_button.length > this.showBtnNum
+          ? this.showBtnNum
+          : this.show_button.length
       // 检查给定显示按钮的数量，显示出来的宽度是否会大于给定的最小宽度，超过的话，就减少显示按钮数量
       for (let i = 0; i < max_num; i++) {
-        show_width += this.show_button[i].text.length * font_size
+        let text = this.show_button[i].text
+        if (typeof this.show_button[i].text === 'function') {
+          text = this.show_button[i].text(this.scope)
+        }
+        show_width += text.length * font_size
         if (i > 0) {
           show_width += 10 // 按钮和按钮之间有10px间距
         }
@@ -131,7 +179,11 @@ export default {
       let width = 0
       if (this.popover_num > 0) {
         for (let i = this.show_num; i < this.show_button.length; i++) {
-          const row_width = this.show_button[i].text.length * font_size
+          let text = this.show_button[i].text
+          if (typeof this.show_button[i].text === 'function') {
+            text = this.show_button[i].text(this.scope)
+          }
+          const row_width = text.length * font_size
           if (row_width > width) {
             width = row_width
           }
@@ -148,10 +200,10 @@ export default {
     hexToRgb,
     set_background_color(index, type = 'in') {
       if (type === 'in') {
-        const rgb = this.hexToRgb(this.show_button[index].style.color)
-        this.$refs[`btn_${index}`][0].$el.style['background-color'] = `rgba(${rgb.r},${rgb.g},${rgb.b},0.10)`
+        this.$refs[`btn_${index}`][0].$el.style['background-color'] =
+          this.show_button[index].style.background_color
       } else {
-        this.$refs[`btn_${index}`][0].$el.style['background-color'] = ``
+        this.$refs[`btn_${index}`][0].$el.style['background-color'] = ''
       }
     }
   }

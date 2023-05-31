@@ -44,6 +44,7 @@
 <script>
 import * as api from '@/api/white_ip/index'
 import { loading_common } from '@/layout/mixin/loading_common'
+import { confirm_msg } from '@/utils/decorator'
 
 export default {
   name: 'WhiteIp',
@@ -79,40 +80,29 @@ export default {
   methods: {
     add_ip() {
       if (this.action_ip === '') {
-        this.$message({
-          type: 'warning',
-          message: '请输入要添加的IP地址'
-        })
+        this.$message.warning('请输入要添加的IP地址')
         return false
       }
       this.loading = true
       api.addIp(this.action_ip, this.remark).then(result => {
-        this.$message({
-          type: 'success',
-          message: '操作成功'
-        })
+        this.$message.success('操作成功')
         this.$set(this.ip_list, this.action_ip, this.remark)
         this.action_ip = ''
         this.remark = ''
         this.loading = false
       }).catch(err => { console.log(err.message) })
     },
+    @confirm_msg('确定要删除该IP？')
     del_ip(ip) {
-      this.$confirm('确定要删除该IP？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        this.loading = true
-        api.delIp(ip).then(result => {
-          this.$message({
-            type: 'success',
-            message: '操作成功'
-          })
-          this.$delete(this.ip_list, ip)
-          this.loading = false
-        }).catch(err => { console.log(err.message) })
-      })
+      this.loading = true
+      api.delIp(ip).then(result => {
+        this.$message({
+          type: 'success',
+          message: '操作成功'
+        })
+        this.$delete(this.ip_list, ip)
+        this.loading = false
+      }).catch(err => { console.log(err.message) })
     },
     index_num(index) {
       return index + 1

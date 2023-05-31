@@ -1,5 +1,5 @@
 <template>
-  <table-layout
+  <form-table-layout
     ref="indexTable"
     :form="form"
     :form-item="form_item"
@@ -17,13 +17,13 @@
     <template v-slot:dialog>
       <order-detail ref="order_detail" />
     </template>
-  </table-layout>
+  </form-table-layout>
 </template>
 
 <script>
 import OrderDetail from '@/views/order-prepare/order_detail'
 import { index_common } from '@/layout/mixin/index_common'
-import { getList, del, changeStatus } from '@/api/index_template'
+import { getList, deletePrepare } from '@/api/orderPrepare'
 
 export default {
   name: 'IndexTemplate',
@@ -43,10 +43,7 @@ export default {
       return getList(this.form)
     },
     del_api(id) {
-      return del(id)
-    },
-    changeStatus(id, status) {
-      return changeStatus(id, status)
+      return deletePrepare(id)
     }
   }
 }

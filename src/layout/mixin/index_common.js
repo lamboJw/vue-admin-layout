@@ -4,23 +4,30 @@
 一般只需要实现fetch_api、del_api、change_status_api即可，也可以实现其他方法来自定义
  */
 
-import tableLayout from '@/layout/components/TableLayout'
+import formTableLayout from '@/layout/components/FormTableLayout'
+import { objectArrayFindIndex, objectHasKey } from '@/utils/common_function'
+import XLSX from 'xlsx'
+import FileSaver from 'file-saver'
+import { MyArray } from '@/utils/myArray'
+import { MyObject } from '@/utils/myObject'
+import { confirm_msg } from '@/utils/decorator'
 
 export const index_common = {
   components: {
-    tableLayout
+    formTableLayout
   },
   data() {
     return {
-      form: {},
+      form: {
+        page: 1,
+        prePage: 20
+      },
       list: [],
       list_loading: true,
       form_item: [],
       table_column: [],
       total_count: 0,
-      page_sizes: this.constants.pager.page_sizes,
-      status_options: ['下线', '上线', '待上线'], // 状态值对象，不要使用异步方法来修改该值，否则tableLayout组件获取不到新值
-      status_color: ['#f78989', '#85ce61', '#ebb563'], // 状态值对应颜色数组，用于显示状态文字，不要使用异步方法来修改该值，否则tableLayout组件获取不到新值
+      page_sizes: [10, 15, 20, 50, 100, 200],
       old_status_list: {}, // 记录列表中旧状态值
       status_key: 'status', // 数据列表中代表状态的键名
       id_key: 'id', // 数据列表中代表id的键名
@@ -32,17 +39,19 @@ export const index_common = {
       fetch_data: this.fetch_data,
       change_status: this.change_status,
       del: this.del,
-      batch_del: this.batch_del,
       open_dialog: this.open_dialog,
-      status_options: this.status_options,
-      status_color: this.status_color,
       id_key: this.id_key,
       status_key: this.status_key
     }
   },
-  created() {
-    this.form[this.constants.pager.page_name] = 1
-    this.form[this.constants.pager.page_size_name] = this.constants.pager.default_page_size
+  computed: {
+    form_prop_index: function() {
+      const index_list = {}
+      this.form_item.map((item, index) => {
+        index_list[objectHasKey(item, 'prop') ? item.prop : ''] = index
+      })
+      return index_list
+    }
   },
   methods: {
     fetch_api() {
@@ -50,41 +59,62 @@ export const index_common = {
       return Promise.reject()
     },
     fetch_callback(result) {
-      this.total_count = result.count
+      this.total_count = result.total
       this.list = result.data
-      if (this.list.length > 0 && this.status_key in this.list[0]) {
+      const _this = this
+      const map = {}
+      const sets = {}
+      this.table_column.map((item, index) => {
+        if (objectHasKey(item, 'filters')) {
+          map[item.field] = index
+          sets[index] = new Set()
+        }
+      })
+      if (
+        this.list.length > 0 &&
+        (objectHasKey(this.list[0], this.status_key) ||
+          Object.keys(map).length > 0)
+      ) {
         this.list.map((item, index) => {
-          this.old_status_list[index] = item[this.status_key]
+          if (this.status_key in this.list[0]) {
+            this.old_status_list[index] = item[this.status_key]
+          }
+          for (const key in item) {
+            if (objectHasKey(map, key)) {
+              sets[map[key]].add(JSON.stringify({ text: item[key], value: item[key] }))
+            }
+          }
         })
+        for (const key in sets) {
+          _this.table_column[key].filters = []
+          sets[key].forEach((value) => {
+            _this.table_column[key].filters.push(JSON.parse(value))
+          })
+        }
       } else {
         this.old_status_list = {}
+        for (const key in sets) {
+          _this.table_column[key].filters = []
+        }
       }
     },
-    fetch_after(result) {},
+    fetch_after() {},
     fetch_data() {
       this.list_loading = true
       this.fetch_api()
         .then((result) => {
           this.list_loading = false
-          this.fetch_callback(result)
-          this.fetch_after(result)
+          this.fetch_callback(result.result)
+          this.fetch_after(result.result)
         })
         .catch(() => {
           this.list_loading = false
         })
     },
-    open_dialog() {
-      let command = `this.$refs[arguments[0]].open_dialog_callback(`
-      for (let i = 1; i < arguments.length; i++) {
-        command += `arguments[${i}]`
-        if (i < arguments.length - 1) {
-          command += ','
-        }
-      }
-      command += ');'
-      // eslint-disable-next-line no-eval
-      eval(command)
+    open_dialog(ref, ...params) {
+      this.$refs[ref].open_dialog_callback(...params)
     },
+    // eslint-disable-next-line no-unused-vars
     del_api(id) {
       this.$message.error('未定义删除接口')
       return Promise.reject()
@@ -95,70 +125,41 @@ export const index_common = {
         message: '删除成功'
       })
     },
+    @confirm_msg('确定要进行删除操作？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
     del(id) {
-      this.$confirm('确定要进行删除操作？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-        .then(() => {
-          this.list_loading = true
-          this.del_api(id)
-            .then((result) => {
-              this.del_callback(result)
-              this.list_loading = false
-              this.fetch_data()
-            })
-            .catch(() => {
-              this.list_loading = false
-            })
+      this.list_loading = true
+      this.del_api(id)
+        .then((result) => {
+          this.del_callback(result.result)
+          this.list_loading = false
+          this.fetch_data()
         })
-        .catch(() => {})
-    },
-    batch_del_api(selection) {
-      this.$message.error('未定义批量删除接口')
-      return Promise.reject()
-    },
-    batch_del() {
-      if (this.table_selection.length === 0) {
-        this.$message.warning('请选择要删除的记录！')
-        return false
-      }
-      this.$confirm('确定要批量删除选中的记录吗？', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
-        .then(() => {
-          this.list_loading = true
-          this.batch_del_api(this.table_selection)
-            .then((result) => {
-              this.del_callback(result)
-              this.list_loading = false
-              this.fetch_data()
-            })
-            .catch(() => {
-              this.list_loading = false
-            })
+        .catch(() => {
+          this.list_loading = false
         })
-        .catch(() => {})
     },
+    // eslint-disable-next-line no-unused-vars
     change_status_api(id, status) {
       this.$message.error('未定义修改状态接口')
       return Promise.reject()
     },
+    // eslint-disable-next-line no-unused-vars
     change_status_callback(result) {
       this.$message({
         type: 'success',
         message: '修改成功'
       })
     },
-    change_status(id, status, index) {
+    change_status(row, status, index) {
       this.$confirm('确定要修改状态吗？', '提醒')
         .then(() => {
-          this.change_status_api(id, status)
+          this.change_status_api(row[this.id_key], status)
             .then((result) => {
-              this.change_status_callback(result)
+              this.change_status_callback(result.result)
               this.old_status_list[index] = status
             })
             .catch(() => {
@@ -169,13 +170,34 @@ export const index_common = {
           this.list[index][this.status_key] = this.old_status_list[index]
         })
     },
-    export_excel(url, data) {
-      let param = ['outputExcel=1']
-      for (const key in data) {
-        param.push(key + '=' + data[key])
+    // 定义导出Excel表格事件
+    export_excel(table_id, filename) {
+      var xlsxParam = { raw: true }
+      /* 从表生成工作簿对象 */
+      var wb = XLSX.utils.table_to_book(
+        document.querySelector(`#${table_id}`),
+        xlsxParam
+      )
+      /* 获取二进制字符串作为输出 */
+      var wbout = XLSX.write(wb, {
+        bookType: 'xlsx',
+        bookSST: true,
+        type: 'array'
+      })
+      try {
+        FileSaver.saveAs(
+          // Blob 对象表示一个不可变、原始数据的类文件对象。
+          // Blob 表示的不一定是JavaScript原生格式的数据。
+          // File 接口基于Blob，继承了 blob 的功能并将其扩展使其支持用户系统上的文件。
+          // 返回一个新创建的 Blob 对象，其内容由参数中给定的数组串联组成。
+          new Blob([wbout], { type: 'application/octet-stream' }),
+          // 设置导出文件名称
+          `${filename}.xlsx`
+        )
+      } catch (e) {
+        if (typeof console !== 'undefined') console.log(e, wbout)
       }
-      param = param.join('&')
-      window.open(process.env.VUE_APP_BASE_API + url + '?' + param)
+      return wbout
     },
     handle_table_selection_change(selection) {
       // 处理表格多选事件
@@ -183,6 +205,28 @@ export const index_common = {
       this.table_selection = selection.map(function(item) {
         return item[_this.id_key]
       })
+    },
+    filterHandler(value, row, column) {
+      return row[column.property] === value
+    },
+    set_form_item_options(prop, options) {
+      const index = objectHasKey(this.form_prop_index, prop)
+        ? this.form_prop_index[prop]
+        : null
+      if (index !== null && objectHasKey(this.form_item[index], 'options')) {
+        this.form_item[index].options = options
+      }
+    },
+    set_table_column_prop(table_column, field, key, val) {
+      const index = objectArrayFindIndex(table_column, 'field', field)
+      if (index !== null && objectHasKey(table_column[index], key)) {
+        table_column[index][key] =
+          typeof val === 'object'
+            ? val instanceof Array
+              ? new MyArray(val)
+              : new MyObject(val)
+            : val
+      }
     }
   }
 }
