@@ -8,7 +8,7 @@
     />
 
     <breadcrumb v-if="menuType === 'left'" id="breadcrumb-container" class="breadcrumb-container" />
-    <top-menu v-else />
+    <top-menu v-else id="breadcrumb-container" class="breadcrumb-container" />
 
     <div class="right-menu">
       <div v-permission="'settle-file-download'" class="avatar-container right-menu-item hover-effect">
