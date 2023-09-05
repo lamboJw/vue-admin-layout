@@ -1,6 +1,6 @@
 # vue-admin-layout
 
-> 基于 [vue-admin-template](https://github.com/PanJiaChen/vue-admin-template) 开源项目，添加了一些布局模板，旨在通过配置来实现后台页面的显示，免去重复繁琐的组件填写。
+> 基于 [vue-admin-template](https://github.com/PanJiaChen/vue-admin-template) 开源项目，添加了一些布局模板，旨在通过配置来实现后台页面的显示，免去重复繁琐的组件填写。配合 [hyperf_admin](https://github.com/lamboJw/hyperf_admin) 后端使用。
 
 ## 基本使用方法
 请在 [vue-admin-template](https://github.com/PanJiaChen/vue-admin-template) 中自行查看
