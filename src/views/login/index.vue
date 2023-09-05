@@ -268,7 +268,7 @@ $cursor: #fff;
 </style>
 
 <style lang="scss" scoped>
-$bg: #3b52c4;
+$bg: #2d3a4b;
 $dark_gray: #889aa4;
 $light_gray: #eee;
 
@@ -276,7 +276,7 @@ $light_gray: #eee;
   min-height: 100%;
   width: 100%;
   background-size: 100%;
-  background: $bg url("~@/assets/images/login_bg.jpg") no-repeat;
+  background: $bg;
   overflow: hidden;
   // display: flex;
   // flex-direction: column;
