@@ -59,8 +59,12 @@
       </el-popover>
     </el-form-item>
     <el-form-item v-if="formSubmitBtn">
-      <el-button type="primary" native-type="submit" @click="form_submit">查询</el-button>
-      <el-button type="normal" style="float: right" @click="form_reset">重置</el-button>
+      <el-button type="primary" native-type="submit" @click="form_submit">
+        查询
+      </el-button>
+      <el-button type="normal" style="float: right" @click="form_reset">
+        重置
+      </el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -68,6 +72,7 @@
 <script>
 import FormItemLayout from '@/layout/components/FormItemLayout'
 import { MyObject } from '@/utils/myObject'
+import { common } from '@/const/constant'
 
 export default {
   name: 'FormLayout',
@@ -79,7 +84,7 @@ export default {
       // 筛选信息
       type: Object,
       default: function() {
-        return { prePage: 15, page: 1 }
+        return { [common.pager.page_size_name]: common.pager.default_page_size, [common.pager.page_name]: 1 }
       },
       required: true
     },
@@ -134,7 +139,8 @@ export default {
       form_submit: this.form_submit,
       submitOnChange: this.submitOnChange,
       itemWidth: this.itemWidth,
-      showLabel: this.showLabel
+      showLabel: this.showLabel,
+      labelWidth: this.labelWidth
     }
   },
   data() {
@@ -265,7 +271,7 @@ export default {
         })
         localStorage.setItem(this.storage_name, JSON.stringify(sort))
       }
-      this.form.page = 1
+      this.form[common.pager.page_name] = 1
       this.reload()
     },
     reset_fields() {
@@ -276,7 +282,7 @@ export default {
     },
     form_reset() {
       this.reset_fields()
-      this.form.page = 1
+      this.form[common.pager.page_name] = 1
       this.reload()
     },
     compare_sort(obj1, obj2) {

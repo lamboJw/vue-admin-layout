@@ -1,23 +1,30 @@
 <template>
-  <form-table-layout ref="indexTable" :form="form" :form-item="form_item" :list="filter_list" :list-loading="list_loading" :table-params="table_params" :form-submit-btn="false" :table-column="table_column" :table-column-btn="false">
+  <form-table-layout
+    ref="indexTable"
+    :form="form"
+    :form-item="form_item"
+    :list="filter_list"
+    :list-loading="list_loading"
+    :table-params="table_params"
+    :form-submit-btn="false"
+    :table-column="table_column"
+    :table-column-btn="false"
+  >
     <template v-slot:dialog>
       <edit ref="edit" />
-      <add ref="add" />
     </template>
   </form-table-layout>
 </template>
 
 <script>
-import { getPermission, del } from '@/api/permission'
-import Edit from '@/views/permission/edit'
-import Add from '@/views/permission/add'
+import { list, del } from '@/api/permission'
+import Edit from '@/views/permission/components/edit'
 import { index_common } from '@/layout/mixin/index_common'
 
 export default {
   name: 'Index',
   components: {
-    Edit,
-    Add
+    Edit
   },
   mixins: [index_common],
   data() {
@@ -28,28 +35,31 @@ export default {
       ],
       table_params: {
         'tree-props': { children: 'children' },
-        'default-expand-all': true
+        'expand-row-keys': ['0']
       },
       table_column: [
         { field: 'name', title: '名称', min_width: '250px', align: 'left' },
-        { field: 'id', title: 'id' },
-        { field: 'parent_id', title: 'pid' },
-        { field: 'href', title: 'href', min_width: '150px' },
+        { field: 'id', title: 'ID' },
+        { field: 'parent_id', title: '上级ID' },
+        { field: 'path', title: '路径', min_width: '150px' },
         { field: 'icon', title: 'icon', template: 'icon' },
         { field: 'sort', title: '排序' },
         {
           title: '操作', template: 'action', action: [
             {
               text: '添加',
-              click: ({ row }) => this.open_dialog('add', row.id)
+              'v-permission': 'permission-add',
+              click: ({ row }) => this.open_dialog('edit', 0, row.id)
             },
             {
               text: '编辑',
+              'v-permission': 'permission-edit',
               color: 'primary',
               click: ({ row }) => this.open_dialog('edit', row.id)
             },
             {
               text: '删除',
+              'v-permission': 'permission-del',
               color: 'danger',
               click: ({ row }) => this.del(row.id)
             }
@@ -77,13 +87,13 @@ export default {
     }
   },
   methods: {
-    fetch_data() {
-      this.list_loading = true
-      getPermission().then(result => {
-        this.list_loading = false
-        this.list = result
-      }).catch(err => {
-        console.log(err.message)
+    fetch_api() {
+      return list()
+    },
+    fetch_callback(result) {
+      this.list = [{ id: 0, parent_id: 0, path: '', name: '全部', icon: '', sort: 0, children: result }]
+      this.list[0].children.map(item => {
+        this.table_params['expand-row-keys'].push(item.id.toString())
       })
     },
     filter_handle(item) {

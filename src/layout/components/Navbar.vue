@@ -1,26 +1,36 @@
 <template>
   <div class="navbar">
-    <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
+    <hamburger
+      id="hamburger-container"
+      :is-active="sidebar.opened"
+      class="hamburger-container"
+      @toggleClick="toggleSideBar"
+    />
 
-    <breadcrumb class="breadcrumb-container" />
+    <breadcrumb v-if="menuType === 'left'" id="breadcrumb-container" class="breadcrumb-container" />
+    <top-menu v-else />
 
     <div class="right-menu">
-      <div class="username">
-        <span>{{ name }}</span>
-      </div>
-      <el-dropdown class="avatar-container" trigger="click">
-        <div class="avatar-wrapper">
-          <img :src="'http://www.sdk.com'+avatar" class="user-avatar">
-          <i class="el-icon-caret-bottom" />
+      <div v-permission="'settle-file-download'" class="avatar-container right-menu-item hover-effect">
+        <div class="avatar-wrapper" @click="filesBox">
+          <i class="el-icon-folder-opened" style="margin-right: 3px" />文件盒子
         </div>
-        <el-dropdown-menu slot="dropdown" class="user-dropdown">
-          <router-link to="/">
-            <el-dropdown-item>
-              主页
-            </el-dropdown-item>
-          </router-link>
+      </div>
+      <el-dropdown
+        class="avatar-container right-menu-item hover-effect"
+        trigger="click"
+        placement="bottom"
+      >
+        <div class="avatar-wrapper">
+          <i class="el-icon-user" />
+          {{ name }}<i class="el-icon-arrow-down el-icon--right" />
+        </div>
+        <el-dropdown-menu slot="dropdown">
+          <el-dropdown-item divided @click.native="chgPWD">
+            <span>修改密码</span>
+          </el-dropdown-item>
           <el-dropdown-item divided @click.native="logout">
-            <span style="display:block;">退出登录</span>
+            <span>登出</span>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
@@ -32,18 +42,24 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
+import { menuType } from '@/settings'
 
 export default {
   components: {
     Breadcrumb,
     Hamburger
   },
+  data() {
+    return {
+      websocket: null,
+      menuType: menuType
+    }
+  },
+  created() {
+    this.$store.dispatch('websocket/WebSocketInit', this.uid)
+  },
   computed: {
-    ...mapGetters([
-      'sidebar',
-      'avatar',
-      'name'
-    ])
+    ...mapGetters(['sidebar', 'uid', 'name'])
   },
   methods: {
     toggleSideBar() {
@@ -51,35 +67,55 @@ export default {
     },
     async logout() {
       await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      await this.$store.dispatch('websocket/Close')
+      await this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+    },
+    /* 文件盒子*/
+    filesBox() {
+      this.$emit('showFilesBox', 11) // 返回父组件触发
+    },
+    /* 修改密码*/
+    chgPWD() {
+      this.$emit('showChgPwd', 11) // 返回父组件触发
     }
+
+  },
+  beforeRouteLeave() {
+    console.log('退出')
+    this.$store.dispatch('websocket/Close')
   }
 }
 </script>
 
 <style lang="scss" scoped>
 .navbar {
-  height: 50px;
+  height: 60px;
   overflow: hidden;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background: #2b2f3a;
 
   .hamburger-container {
-    line-height: 46px;
+    line-height: 56px;
     height: 100%;
     float: left;
     cursor: pointer;
-    transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+    transition: background 0.3s;
+    -webkit-tap-highlight-color: transparent;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      background: rgba(0, 0, 0, 0.025);
     }
   }
 
   .breadcrumb-container {
     float: left;
+  }
+
+  .errLog-container {
+    display: inline-block;
+    vertical-align: top;
   }
 
   .right-menu {
@@ -91,14 +127,9 @@ export default {
       outline: none;
     }
 
-    .username {
-      position: absolute;
-      right: 80px;
-    }
-
     .right-menu-item {
       display: inline-block;
-      padding: 0 8px;
+      padding: 0;
       height: 100%;
       font-size: 18px;
       color: #5a5e66;
@@ -106,20 +137,22 @@ export default {
 
       &.hover-effect {
         cursor: pointer;
-        transition: background .3s;
+        transition: background 0.3s;
 
         &:hover {
-          background: rgba(0, 0, 0, .025)
+          background: rgba(0, 0, 0, 0.025);
         }
       }
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 20px;
 
       .avatar-wrapper {
         margin-top: 5px;
         position: relative;
+        font-size: 14px;
+        color: #fff;
 
         .user-avatar {
           cursor: pointer;
@@ -138,5 +171,11 @@ export default {
       }
     }
   }
+}
+.el-popper[x-placement^="bottom"] {
+  margin: 0;
+}
+.el-dropdown-menu__item--divided {
+  border-top: 0;
 }
 </style>

@@ -1,3 +1,17 @@
+// sidebar
+$menuText:#bfcbd9;
+$menuActiveText:#409EFF;
+$subMenuActiveText:#f4f4f5; // https://github.com/ElemeFE/element/issues/12951
+
+$menuBg:#304156;
+$menuHover:#263445;
+
+$subMenuBg:#1f2d3d;
+$subMenuHover:#001528;
+$borderColor: #e8e8e8;
+$blue:#3075A5;
+
+$sideBarWidth: 210px;
 #app {
 
   .main-container {
@@ -27,6 +41,8 @@
 
     .scrollbar-wrapper {
       overflow-x: hidden !important;
+      border-right: 1px solid $borderColor;
+      padding-top: 5px;
     }
 
     .el-scrollbar__bar.is-vertical {
@@ -39,7 +55,7 @@
 
     &.has-logo {
       .el-scrollbar {
-        height: calc(100% - 50px);
+        height: calc(100% - 60px);
       }
     }
 
@@ -57,11 +73,6 @@
       margin-right: 16px;
     }
 
-    .sub-el-icon {
-      margin-right: 12px;
-      margin-left: -2px;
-    }
-
     .el-menu {
       border: none;
       height: 100%;
@@ -71,6 +82,7 @@
     // menu hover
     .submenu-title-noDropdown,
     .el-submenu__title {
+      padding: 0px!important;
       &:hover {
         background-color: $menuHover !important;
       }
@@ -78,16 +90,19 @@
 
     .is-active>.el-submenu__title {
       color: $subMenuActiveText !important;
+      
     }
-
     & .nest-menu .el-submenu>.el-submenu__title,
     & .el-submenu .el-menu-item {
       min-width: $sideBarWidth !important;
       background-color: $subMenuBg !important;
-
       &:hover {
         background-color: $subMenuHover !important;
       }
+    }
+    & .el-submenu .is-active {
+      background-color: $subMenuHover !important;
+      border-right: 3px solid $blue;
     }
   }
 
@@ -110,25 +125,17 @@
         .svg-icon {
           margin-left: 20px;
         }
-
-        .sub-el-icon {
-          margin-left: 19px;
-        }
       }
     }
 
     .el-submenu {
       overflow: hidden;
 
-      &>.el-submenu__title {
-        padding: 0 !important;
+      & > .el-submenu__title {
+        padding: 0px!important;
 
         .svg-icon {
           margin-left: 20px;
-        }
-
-        .sub-el-icon {
-          margin-left: 19px;
         }
 
         .el-submenu__icon-arrow {
@@ -190,10 +197,6 @@
   &>.el-menu {
     .svg-icon {
       margin-right: 16px;
-    }
-    .sub-el-icon {
-      margin-right: 12px;
-      margin-left: -2px;
     }
   }
 

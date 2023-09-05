@@ -1,49 +1,49 @@
-// cover some element-ui styles
-
-.el-breadcrumb__inner,
-.el-breadcrumb__inner a {
-  font-weight: 400 !important;
+.el-pagination {
+  margin-right: -10px
 }
-
-.el-upload {
-  input[type="file"] {
-    display: none !important;
+.el-table {
+  font-size: 14px;
+  color: #666;
+  .cell .el-button {
+    font-size: 14px
+  }
+  thead th {
+    background: #F5F7FA!important;
+    font-weight: 600;
+    color: #333
+  }
+  td {
+    padding: 0 !important;
+    height: 40px
   }
 }
-
-.el-upload__input {
-  display: none;
+.table-header,
+.el-table__header {
+  background-color: red!important;
+}
+.el-table--border,
+.el-table td, .el-table th.is-leaf,
+.el-table--border th, .el-table__fixed-right-patch,
+.el-table td,
+.el-table--border td {
+  border-color: #CFD8E3
+  !important;
+}
+.el-table::before,
+.el-table__fixed-right::before {
+  background: #CFD8E3;
 }
 
-
-// to fixed https://github.com/ElemeFE/element/issues/2461
-.el-dialog {
-  transform: none;
-  left: 0;
-  position: relative;
-  margin: 0 auto;
+.el-table .caret-wrapper {
+  height: 20px
+}
+.el-table .sort-caret.ascending {
+  top: -2px
+}
+.el-table .sort-caret.descending {
+  bottom: 0px
 }
 
-// refine element ui upload
-.upload-container {
-  .el-upload {
-    width: 100%;
-
-    .el-upload-dragger {
-      width: 100%;
-      height: 200px;
-    }
-  }
-}
-
-// dropdown
-.el-dropdown-menu {
-  a {
-    display: block
-  }
-}
-
-// to fix el-date-picker css style
-.el-range-separator {
-  box-sizing: content-box;
+.el-image-viewer__wrapper {
+  z-index: 9999!important
 }

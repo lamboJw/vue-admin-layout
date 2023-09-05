@@ -1,7 +1,8 @@
 import Cookies from 'js-cookie'
 
 // 记录登录token的cookie key
-const TokenKey = 'hy-sdk-backend-token'
+const TokenKey = 'Admin-Token'
+const UidKey = 'Admin-Uid'
 
 export function getToken() {
   return Cookies.get(TokenKey)
@@ -13,4 +14,16 @@ export function setToken(token) {
 
 export function removeToken() {
   return Cookies.remove(TokenKey)
+}
+
+export function getUid() {
+  return Cookies.get(UidKey)
+}
+
+export function setUid(uid) {
+  return Cookies.set(UidKey, uid, { expires: 1 })
+}
+
+export function removeUid() {
+  return Cookies.remove(UidKey)
 }

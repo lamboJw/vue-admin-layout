@@ -1,14 +1,13 @@
-import { login, logout, getInfo } from '@/api/common/user'
-import { getToken, setToken, removeToken } from '@/utils/auth'
+import { login, logout, info } from '@/api/user'
+import { getToken, setToken, removeToken, setUid, getUid, removeUid } from '@/utils/auth'
 import { resetRouter } from '@/router'
 
 const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
-    avatar: '',
-    roles: [],
-    csrf_token: ''
+    role: 0,
+    uid: ''
   }
 }
 
@@ -24,27 +23,25 @@ const mutations = {
   SET_NAME: (state, name) => {
     state.name = name
   },
-  SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
+  SET_ROLE: (state, role) => {
+    state.role = role
   },
-  SET_ROLES: (state, roles) => {
-    state.roles = roles
-  },
-  SET_CSRF_TOKEN: (state, csrf_token) => {
-    state.csrf_token = csrf_token
+  SET_UID: (state, uid) => {
+    state.uid = uid
   }
 }
 
 const actions = {
   // user login
   login({ commit }, userInfo) {
-    const { mobile, password } = userInfo
+    const { username, password } = userInfo
     return new Promise((resolve, reject) => {
-      login({ mobile: mobile.trim(), password: password }).then(response => {
-        const { csrf_token } = response
-        commit('SET_CSRF_TOKEN', csrf_token)
-        commit('SET_TOKEN', csrf_token)
-        setToken(csrf_token)
+      login({ username: username.trim(), password: password }).then(response => {
+        const { token, id } = response.result
+        commit('SET_TOKEN', token)
+        commit('SET_UID', id)
+        setToken(token)
+        setUid(id)
         resolve()
       }).catch(error => {
         reject(error)
@@ -53,17 +50,17 @@ const actions = {
   },
 
   // get user info
-  getInfo({ commit, state }) {
+  getInfo({ commit, rootState }) {
     return new Promise((resolve, reject) => {
-      getInfo().then(response => {
-        const { roles, name, avatar } = response
-        if (!roles || roles.length <= 0) {
+      info({ id: getUid() }).then(response => {
+        const { role, name, permissions } = response.result
+        if (!role) {
           reject('您还没有授权任何角色')
         }
-        commit('SET_ROLES', roles)
+        commit('SET_ROLE', role)
         commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(roles)
+        commit('permission/SET_PERMISSIONS', permissions, { root: true })
+        resolve()
       }).catch(error => {
         reject(error)
       })
@@ -75,8 +72,10 @@ const actions = {
     return new Promise((resolve, reject) => {
       logout().then(() => {
         removeToken() // must remove  token  first
+        removeUid()
         resetRouter()
         commit('RESET_STATE')
+        commit('permission/RESET_STATE', null, { root: true })
         resolve()
       }).catch(error => {
         reject(error)
@@ -88,7 +87,9 @@ const actions = {
   resetToken({ commit }) {
     return new Promise(resolve => {
       removeToken() // must remove  token  first
+      removeUid()
       commit('RESET_STATE')
+      commit('permission/RESET_STATE', null, { root: true })
       resolve()
     })
   }

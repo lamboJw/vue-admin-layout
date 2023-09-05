@@ -20,14 +20,19 @@ export default {
       if (icon.includes('el-icon')) {
         vnodes.push(<i class={[icon, 'sub-el-icon']} />)
       } else {
-        vnodes.push(<svg-icon icon-class={icon}/>)
+        vnodes.push(<svg-icon icon-class={icon} />)
       }
     }
 
     if (title) {
-      vnodes.push(<span slot='title'>{(title)}</span>)
+      const title_node = h('span', {
+        attrs: {
+          slot: 'title',
+          class: icon ? '' : 'title-without-icon'
+        }
+      }, title)
+      vnodes.push(title_node)
     }
-
     return vnodes
   }
 }
@@ -38,5 +43,10 @@ export default {
   color: currentColor;
   width: 1em;
   height: 1em;
+  margin-left: 10px;
+  margin-right: 16px;
+}
+.title-without-icon {
+  margin-left: calc(1em + 30px)
 }
 </style>

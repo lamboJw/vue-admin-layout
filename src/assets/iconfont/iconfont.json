@@ -1,0 +1,23 @@
+{
+  "id": "2512463",
+  "name": "深海OA",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "5810202",
+      "name": "eye_open",
+      "font_class": "eye_open",
+      "unicode": "e7ec",
+      "unicode_decimal": 59372
+    },
+    {
+      "icon_id": "8092167",
+      "name": "eye-close",
+      "font_class": "eye-close",
+      "unicode": "e8ff",
+      "unicode_decimal": 59647
+    }
+  ]
+}

@@ -49,7 +49,7 @@
         <el-select
           v-if="item.template === 'select'"
           v-model="row[item.field]"
-          @change="(new_value) => item.change(row, new_value)"
+          @change="(new_value) => item.change(row, new_value, new_value)"
         >
           <el-option
             v-for="option in item.options"
@@ -60,11 +60,7 @@
         </el-select>
         <span
           v-else-if="item.template === 'str_map'"
-          :style="{
-            color: item.hasKey('color')
-              ? item.color.getAttr(row[item.field], '#666')
-              : '#666',
-          }"
+          :style="{ color: getColor(item, row) }"
         >
           {{ item.hasKey("str_map") ? item.str_map.getAttr(row[item.field], "") : "" }}
         </span>
@@ -118,41 +114,47 @@
 </template>
 
 <script>
-import { combineUrl, getWidth } from "@/utils/common_function";
-import ButtonSet from "@/layout/components/ButtonSet";
+import { combineUrl, getColor, getWidth } from '@/utils/common_function'
+import ButtonSet from '@/layout/components/ButtonSet'
 
 export default {
-  name: "TableColumnLayout",
+  name: 'TableColumnLayout',
   components: { ButtonSet },
   props: {
     item: {
       type: Object,
-      default: function () {
-        return {};
-      },
+      default: function() {
+        return {}
+      }
     },
     index: {
       type: Number,
-      default: 0,
-    },
+      default: 0
+    }
   },
   methods: {
     combineUrl,
     getWidth,
     imageClickHandler() {
       this.$nextTick(() => {
-        const domImageMask = document.querySelector(".el-image-viewer__mask"); // 获取遮罩层dom
+        const domImageMask = document.querySelector('.el-image-viewer__mask') // 获取遮罩层dom
         if (!domImageMask) {
-          return;
+          return
         }
-        domImageMask.addEventListener("click", () => {
+        domImageMask.addEventListener('click', () => {
           // 点击遮罩层时调用关闭按钮的 click 事件
-          document.querySelector(".el-image-viewer__close").click();
-        });
-      });
+          document.querySelector('.el-image-viewer__close').click()
+        })
+      })
     },
-  },
-};
+    getColor(item, row) {
+      const color = item.hasKey('color')
+        ? item.color.getAttr(row[item.field], '#666')
+        : '#666'
+      return getColor(color)
+    }
+  }
+}
 </script>
 
 <style scoped></style>

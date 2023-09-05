@@ -1,6 +1,12 @@
 module.exports = {
 
-  title: '海洋SDK后台',
+  title: '后台系统',
+
+  /**
+   * @type {string} left | top-left
+   * @description 路由显示方式，left：仅在侧边栏显示；top-left：顶部显示一级路由，侧边栏显示二级及以下路由
+   */
+  menuType: 'top-left',
 
   /**
    * @type {boolean} true | false
@@ -15,8 +21,8 @@ module.exports = {
   sidebarLogo: true,
 
   /**
-   * @type {string}
-   * @description 图标地址
+   * @type {boolean} true | false
+   * @description Whether need tagsView
    */
-  logo: ''
+  tagsView: false
 }

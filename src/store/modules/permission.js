@@ -1,17 +1,18 @@
-import { constantRoutes } from '@/router'
-import { getRoutes } from '@/api/common/permission'
+import router, { constantRoutes } from '@/router'
 import Layout from '@/layout'
 import { route_map } from '@/router/route_map'
-import { notify_list, notify_path } from '@/store/modules/notify_list'
+import { MyObject } from '@/utils/myObject'
+import { getRoutes } from '@/api/user'
+import { objectGetValue } from '@/utils/common_function'
+import { getToken } from '@/utils/auth'
 
 /**
  * 判断角色是否拥有该路由的权限
- * @param roles
- * @param route
+ * @param {MyObject} route
  */
-function hasPermission(roles, route) {
-  if (route.meta && route.meta.roles) {
-    return roles.some(role => route.meta.roles.includes(role.toString()))
+function hasPermission(route) {
+  if (route.hasKey('meta') && route.meta.hasKey('permission')) {
+    return state.permissions.includes(route.meta.permission)
   } else {
     return true
   }
@@ -34,9 +35,6 @@ export function getAsyncRoutes(routes) {
         newItem[key] = item[key]
       }
     }
-    if (typeof newItem.meta !== 'undefined') { // 添加菜单提醒数字
-      newItem.meta.notify_num = 0
-    }
     if (newItem.children && newItem.children.length) { // 子菜单组装路由
       newItem.children = getAsyncRoutes(item.children)
     }
@@ -48,101 +46,104 @@ export function getAsyncRoutes(routes) {
 /**
  * 根据角色权限过滤路由
  * @param routes asyncRoutes
- * @param roles
  */
-export function filterAsyncRoutes(routes, roles) {
+export function filterAsyncRoutes(routes) {
   const res = []
-  let permissions = []
 
   routes.forEach(route => {
-    const tmp = { ...route }
-    if (hasPermission(roles, tmp)) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (tmp.hasOwnProperty('meta') && tmp.meta.hasOwnProperty('permissions')) {
-        permissions = permissions.concat(tmp.meta.permissions)
-      }
+    const tmp = new MyObject(route)
+    if (hasPermission(tmp)) {
       if (tmp.children) {
-        const children = filterAsyncRoutes(tmp.children, roles)
+        const children = filterAsyncRoutes(tmp.children)
         tmp.children = children.res
-        permissions = permissions.concat(children.permissions)
       }
       res.push(tmp)
     }
   })
 
-  return { res, permissions }
+  return { res }
 }
 
-const state = {
-  routes: [],
-  addRoutes: [],
-  permissions: []
+const getDefaultState = () => {
+  return {
+    routes: [],
+    addRoutes: [],
+    permissions: [],
+    topRoutes: [],
+    leftRoutes: {},
+    curTopRoute: ''
+  }
+}
+
+const state = getDefaultState()
+
+function match_route(cur_route, route) {
+  if (route.path === cur_route) {
+    return true
+  }
+  if (typeof route.children !== 'undefined' && route.children.length > 0) {
+    for (const i in route.children) {
+      const ret = match_route(cur_route, route.children[i])
+      if (ret) {
+        return true
+      }
+    }
+  } else {
+    return false
+  }
 }
 
 const mutations = {
-  SET_ROUTES: (state, routes) => {
+  SET_ROUTES: (state, payload) => {
+    const { routes, redirect_to } = payload
     state.addRoutes = routes
     state.routes = constantRoutes.concat(routes) // 合并静态路由和动态路由
-  },
-  UPDATE_NOTIFY_NUM: (state, payload) => { // 更新菜单提醒数字
-    state.routes.forEach(function(route) {
-      if (typeof route.children !== 'undefined' && route.children.length > 0) {
-        route.meta.notify_num = 0
-        route.children.forEach(function(child) {
-          if (notify_path.includes(child.path)) { // 找到二级菜单，修改提醒数
-            child.meta.notify_num = payload[notify_list[child.path]]
-            route.meta.notify_num += payload[notify_list[child.path]] // 增加一级菜单提醒数
-          }
-        })
+    let redirect_top_route = null
+    state.routes.map((item, k) => {
+      if (!objectGetValue(item, 'hidden')) {
+        state.topRoutes.push({ title: item.meta.title, name: item.name })
+        state.leftRoutes[item.name] = item.children
+      }
+      if (match_route(redirect_to, item)) {
+        redirect_top_route = item.name
       }
     })
+    state.curTopRoute = redirect_top_route || (state.topRoutes.length > 0 ? state.topRoutes[0].name : '')
   },
   SET_PERMISSIONS: (state, permissions) => {
     state.permissions = permissions
+  },
+  SET_CUR_TOP_ROUTE: (state, cur_top_route) => {
+    state.curTopRoute = cur_top_route
+  },
+  RESET_STATE: (state) => {
+    Object.assign(state, getDefaultState())
   }
 }
 
 const actions = {
-  generateRoutes({ commit }, roles) {
+  generateRoutes({ commit }, redirect_to = '') {
     return new Promise((resolve, reject) => {
       // 异步获取路由
       getRoutes().then(asyncRoutes => {
-        // 组装路由信息
-        asyncRoutes = getAsyncRoutes(asyncRoutes)
-        // 根据角色权限过滤路由
-        const result = filterAsyncRoutes(asyncRoutes, roles)
-        const accessedRoutes = result.res
-        commit('SET_PERMISSIONS', result.permissions)
-        // 这里因为项目会根据角色显示不同首页，所以在这里写首页的路由，如果没有这个需要，可以由接口返回
-        const index_route = {
-          path: '/',
-          component: Layout,
-          redirect: '/index',
-          name: '/0',
-          meta: { breadcrumb: false },
-          children: [{
-            path: 'index',
-            name: 'index',
-            component: () => import('@/views/home/index'),
-            meta: { title: '首页', icon: 'dashboard' }
-          }]
-        }
-        if (roles.includes(1)) { // 角色包含1，就显示首页2
-          index_route.children[0].component = () => import('@/views/home/index2')
-        }
-        accessedRoutes.unshift(index_route)
+        // 组装路由信息，从后端获取的路由就是经过过滤的
+        const accessedRoutes = getAsyncRoutes(asyncRoutes.result)
         // 保存路由信息
-        commit('SET_ROUTES', accessedRoutes)
+        commit('SET_ROUTES', { routes: accessedRoutes, redirect_to })
         resolve(accessedRoutes)
       }).catch(error => {
         reject(error)
       })
     })
   },
-  updateNotifyNum({ commit }, notify_num) {
-    return new Promise((resolve, reject) => {
-      commit('UPDATE_NOTIFY_NUM', notify_num)
-      resolve()
+  selectTopRoute({ commit }, top_route) {
+    return new Promise(() => {
+      if (state.topRoutes.some((item) => item.name === top_route)) {
+        commit('SET_CUR_TOP_ROUTE', top_route)
+        if (router.currentRoute.path !== state.leftRoutes[top_route]['0'].path) {
+          router.push(state.leftRoutes[top_route]['0'].path)
+        }
+      }
     })
   }
 }

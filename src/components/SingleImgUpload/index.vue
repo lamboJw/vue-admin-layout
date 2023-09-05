@@ -19,9 +19,9 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 
 export default {
+  name: 'SingleImgUpload',
   props: {
     imgUrl: { type: String, default: '' },
     width: { type: String, default: '92px' },
@@ -31,19 +31,16 @@ export default {
   },
   data() {
     return {
-      upload_url: process.env.VUE_APP_BASE_API + '/admin/upload'
+      upload_url: process.env.VUE_APP_BASE_API + '/upload/index'
     }
   },
   computed: {
-    ...mapGetters([
-      'csrf_token'
-    ]),
     upload_headers() {
-      return { 'X-CSRF-TOKEN': this.csrf_token }
+      return {}
     },
     img_url: {
       get: function() {
-        return this.imgUrl.indexOf('data:image/') === 0 ? this.imgUrl : process.env.VUE_APP_HOST.replace(/\/?$/, '') + this.imgUrl
+        return this.imgUrl.indexOf('data:image/') === 0 ? this.imgUrl : process.env.VUE_APP_BASE_API + this.imgUrl
       },
       set: function(newValue) {
         this.$emit('update:imgUrl', newValue)

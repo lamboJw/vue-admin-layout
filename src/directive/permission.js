@@ -11,19 +11,14 @@ import store from '../store'
 Vue.directive('permission', {
   inserted(el, binding) {
     const perms = store.getters.permissions
-    if (perms && !perms.contains(binding.value)) {
+    if (perms && !perms.includes(binding.value)) {
       el.remove()
     }
   },
   update(el, binding) {
     const perms = store.getters.permissions
-    if (perms && !perms.contains(binding.value)) {
+    if (perms && !perms.includes(binding.value)) {
       el.remove()
     }
   }
 })
-
-// eslint-disable-next-line no-extend-native
-Array.prototype.contains = function(val) {
-  return this.indexOf(val) !== -1
-}

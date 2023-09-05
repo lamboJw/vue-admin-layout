@@ -6,28 +6,31 @@
 
 import formTableLayout from '@/layout/components/FormTableLayout'
 import { objectArrayFindIndex, objectHasKey } from '@/utils/common_function'
-import XLSX from 'xlsx'
+import { utils as xlsx$utils, write as xlsx$write } from 'xlsx'
 import FileSaver from 'file-saver'
 import { MyArray } from '@/utils/myArray'
 import { MyObject } from '@/utils/myObject'
 import { confirm_msg } from '@/utils/decorator'
+import { form_common } from '@/layout/mixin/form_common'
+import { common } from '@/const/constant'
 
 export const index_common = {
   components: {
     formTableLayout
   },
+  mixins: [form_common],
   data() {
     return {
       form: {
-        page: 1,
-        prePage: 20
+        [common.pager.page_name]: 1,
+        [common.pager.page_size_name]: common.pager.default_page_size
       },
       list: [],
       list_loading: true,
       form_item: [],
       table_column: [],
       total_count: 0,
-      page_sizes: [10, 15, 20, 50, 100, 200],
+      page_sizes: common.pager.page_sizes,
       old_status_list: {}, // 记录列表中旧状态值
       status_key: 'status', // 数据列表中代表状态的键名
       id_key: 'id', // 数据列表中代表id的键名
@@ -42,15 +45,6 @@ export const index_common = {
       open_dialog: this.open_dialog,
       id_key: this.id_key,
       status_key: this.status_key
-    }
-  },
-  computed: {
-    form_prop_index: function() {
-      const index_list = {}
-      this.form_item.map((item, index) => {
-        index_list[objectHasKey(item, 'prop') ? item.prop : ''] = index
-      })
-      return index_list
     }
   },
   methods: {
@@ -81,7 +75,9 @@ export const index_common = {
           }
           for (const key in item) {
             if (objectHasKey(map, key)) {
-              sets[map[key]].add(JSON.stringify({ text: item[key], value: item[key] }))
+              sets[map[key]].add(
+                JSON.stringify({ text: item[key], value: item[key] })
+              )
             }
           }
         })
@@ -142,12 +138,10 @@ export const index_common = {
           this.list_loading = false
         })
     },
-    // eslint-disable-next-line no-unused-vars
     change_status_api(id, status) {
       this.$message.error('未定义修改状态接口')
       return Promise.reject()
     },
-    // eslint-disable-next-line no-unused-vars
     change_status_callback(result) {
       this.$message({
         type: 'success',
@@ -174,12 +168,12 @@ export const index_common = {
     export_excel(table_id, filename) {
       var xlsxParam = { raw: true }
       /* 从表生成工作簿对象 */
-      var wb = XLSX.utils.table_to_book(
+      var wb = xlsx$utils.table_to_book(
         document.querySelector(`#${table_id}`),
         xlsxParam
       )
       /* 获取二进制字符串作为输出 */
-      var wbout = XLSX.write(wb, {
+      var wbout = xlsx$write(wb, {
         bookType: 'xlsx',
         bookSST: true,
         type: 'array'
@@ -209,14 +203,6 @@ export const index_common = {
     filterHandler(value, row, column) {
       return row[column.property] === value
     },
-    set_form_item_options(prop, options) {
-      const index = objectHasKey(this.form_prop_index, prop)
-        ? this.form_prop_index[prop]
-        : null
-      if (index !== null && objectHasKey(this.form_item[index], 'options')) {
-        this.form_item[index].options = options
-      }
-    },
     set_table_column_prop(table_column, field, key, val) {
       const index = objectArrayFindIndex(table_column, 'field', field)
       if (index !== null && objectHasKey(table_column[index], key)) {
@@ -227,6 +213,22 @@ export const index_common = {
               : new MyObject(val)
             : val
       }
+    },
+    get_show_columns(table_ref = 'indexTable') {
+      let ref
+      if (typeof this.$refs[table_ref] === 'undefined') {
+        this.$message.error('未找到表格组件')
+        return false
+      }
+      ref = this.$refs[table_ref]
+      if (ref.$vnode.tag.indexOf('FormTableLayout') !== -1) {
+        ref = ref.$refs.table_layout
+      }
+      if (ref.$vnode.tag.indexOf('TableLayout') === -1) {
+        this.$message.error('指定表格组件不是TableLayout')
+        return false
+      }
+      return ref.table_column_checked
     }
   }
 }

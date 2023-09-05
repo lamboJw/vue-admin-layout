@@ -12,32 +12,37 @@
     :label-width="label_width(item)"
   >
     <el-input
-      v-if="!item.type || item.type === 'input'"
+      v-if="item.getAttr('type', 'input') === 'input'"
       v-model="form[item.prop]"
-      :placeholder="`${item.label}`"
+      :placeholder="placeholder(item)"
       :type="item.getAttr('input_type', 'text')"
       clearable
-      suffix-icon="el-icon-search"
+      :suffix-icon="item.getAttr('suffix', true) ? 'el-icon-search' : ''"
       :disabled="item.isTrue('disabled')"
       :style="{ width: item_width(item) }"
-      @change="form_change_submit"
+      @change="(val) => {form_change_submit(item,val)}"
     />
     <el-select
       v-else-if="item.type === 'select'"
       v-model="form[item.prop]"
-      :placeholder="`${item.label}`"
+      :placeholder="placeholder(item)"
       clearable
       filterable
       :disabled="item.isTrue('disabled')"
       :style="{ width: item_width(item) }"
-      @change="form_change_submit"
+      :remote="item.getAttr('remote', false)"
+      :remote-method="item.getAttr('remote_method')"
+      :loading="item.getAttr('loading', false)"
+      @change="(val) => {form_change_submit(item,val)}"
     >
       <el-option
         v-for="option in item.options"
         :key="option[item.getAttr('option_value', 'id')]"
         :label="option[item.getAttr('option_label', 'name')]"
         :value="option[item.getAttr('option_value', 'id')]"
-      />
+      >
+        <div v-if="option.slot" v-html="option.slot" />
+      </el-option>
     </el-select>
     <el-date-picker
       v-else-if="
@@ -54,7 +59,7 @@
       "
       v-model="form[item.prop]"
       :type="item.type"
-      :placeholder="`请选择${item.label}`"
+      :placeholder="placeholder(item)"
       range-separator="至"
       :start-placeholder="`${item.label}开始`"
       :end-placeholder="`${item.label}结束`"
@@ -62,28 +67,27 @@
       :format="date_picker_format[item.type.replace('range', '')]"
       :disabled="item.isTrue('disabled')"
       :style="{ width: item_width(item) }"
-      @change="form_change_submit"
+      @change="(val) => {form_change_submit(item,val)}"
     />
     <el-time-select
       v-else-if="item.type === 'time'"
       v-model="form[item.prop]"
-      :placeholder="'选择' + item.label"
+      :placeholder="placeholder(item)"
       :disabled="item.isTrue('disabled')"
       :style="{ width: item_width(item) }"
-      @change="form_change_submit"
+      @change="(val) => {form_change_submit(item,val)}"
     />
     <el-time-picker
       v-else-if="item.type === 'timerange'"
       v-model="form[item.prop]"
       is-range
-      placeholder="选择时间范围"
+      :placeholder="item.getAttr('placeholder', `请选择${item.label}`)"
       range-separator="至"
-      start-placeholder="开始时间"
-      end-placeholder="结束时间"
-      value-format="yyyy-MM-dd HH:mm:ss"
+      :start-placeholder="`${item.label}开始`"
+      :end-placeholder="`${item.label}结束`"
       :disabled="item.isTrue('disabled')"
       :style="{ width: item_width(item) }"
-      @change="form_change_submit"
+      @change="(val) => {form_change_submit(item,val)}"
     />
     <multi-select-new
       v-else-if="item.type === 'multi_select'"
@@ -93,7 +97,7 @@
       :option-label="item.getAttr('option_label', 'name')"
       :limit="item.getAttr('limit', 0)"
       collapse-tags
-      :placeholder="`${item.label}`"
+      :placeholder="placeholder(item)"
       clearable
       filterable
       :disabled="item.isTrue('disabled')"
@@ -101,12 +105,12 @@
       @visible-change="
         (show) => {
           if (!show) {
-            form_change_submit();
+            form_change_submit(item);
           }
         }
       "
-      @remove-tag="form_change_submit"
-      @clear="form_change_submit"
+      @remove-tag="form_change_submit(item)"
+      @clear="form_change_submit(item)"
     />
     <template v-else-if="item.type === 'number_scope'">
       <el-input
@@ -114,7 +118,7 @@
         :style="{ width: number_scope_width(item) }"
         :placeholder="`最小${item.label}`"
         :disabled="item.isTrue('disabled')"
-        @change="form_change_submit"
+        @change="(val) => {form_change_submit(item,val)}"
       />
       <span class="middle-text" style="width: 7px">-</span>
       <el-input
@@ -122,7 +126,7 @@
         :style="{ width: number_scope_width(item) }"
         :placeholder="`最大${item.label}`"
         :disabled="item.isTrue('disabled')"
-        @change="form_change_submit"
+        @change="(val) => {form_change_submit(item,val)}"
       />
     </template>
     <template v-else-if="item.type === 'text'">
@@ -188,11 +192,16 @@ export default {
       }
     }
   },
-  inject: ['form_submit', 'submitOnChange', 'itemWidth', 'showLabel'],
+  inject: ['form_submit', 'submitOnChange', 'itemWidth', 'showLabel', 'labelWidth'],
   methods: {
-    form_change_submit() {
+    test() {
+      console.log(arguments)
+    },
+    form_change_submit(item, val) {
       if (this.submitOnChange) {
         this.form_submit()
+      } else if (item.hasKey('change') && typeof item.change === 'function') {
+        item.change(val)
       }
     },
     item_width(item) {
@@ -216,9 +225,27 @@ export default {
       return item.hasKey(item) && item[key]
     },
     label_width(item) {
-      return item.hasKey('show_label') && item.show_label
-        ? getWidth(item.getAttr('label_width', 100))
+      if (item.hasKey('show_label') && !item.show_label) return '0'
+      return this.showLabel || item.isTrue('show_label')
+        ? item.hasKey('label_width')
+          ? getWidth(item.getAttr('label_width', 100))
+          : item.labelWidth
         : '0'
+    },
+    placeholder(item) {
+      if (item.hasKey('placeholder')) {
+        return item.placeholder
+      }
+      if (item.getAttr('show_label', this.showLabel)) {
+        const type = item.getAttr('type', 'input')
+        if (['multi_select', 'select', 'time', 'date', 'datetime', 'month', 'year'].includes(type)) {
+          return `请选择${item.label}`
+        } else if (type === 'input') {
+          return `请填写${item.label}`
+        }
+      } else {
+        return item.label
+      }
     }
   }
 }

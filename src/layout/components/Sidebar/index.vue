@@ -1,5 +1,5 @@
 <template>
-  <div :class="{'has-logo':showLogo}">
+  <div :class="{ 'has-logo': showLogo }">
     <logo v-if="showLogo" :collapse="isCollapse" />
     <el-scrollbar wrap-class="scrollbar-wrapper">
       <el-menu
@@ -12,7 +12,12 @@
         :collapse-transition="false"
         mode="vertical"
       >
-        <sidebar-item v-for="route in permission_routes" :key="route.name" :item="route" :base-path="route.path" />
+        <sidebar-item
+          v-for="route in routes"
+          :key="route.path"
+          :item="route"
+          :base-path="route.path"
+        />
       </el-menu>
     </el-scrollbar>
   </div>
@@ -22,16 +27,15 @@
 import { mapGetters } from 'vuex'
 import Logo from './Logo'
 import SidebarItem from './SidebarItem'
-import variables from '@/styles/variables.scss'
-// import { getTodoNum } from '@/api/common/permission'
+import { menuType } from '@/settings'
 
 export default {
   components: { SidebarItem, Logo },
   computed: {
-    ...mapGetters([
-      'permission_routes',
-      'sidebar'
-    ]),
+    ...mapGetters(['left_routes', 'cur_top_route', 'permission_routes', 'sidebar']),
+    routes() {
+      return menuType === 'left' ? this.permission_routes : this.left_routes[this.cur_top_route]
+    },
     activeMenu() {
       const route = this.$route
       const { meta, path } = route
@@ -45,26 +49,14 @@ export default {
       return this.$store.state.settings.sidebarLogo
     },
     variables() {
-      return variables
+      return {
+        menuBg: '#304156',
+        menuText: '#bfcbd9',
+        menuActiveText: '#409EFF'
+      }
     },
     isCollapse() {
       return !this.sidebar.opened
-    }
-  },
-  mounted() {
-    if (process.env.NODE_ENV === 'production') {
-      this.get_todo_num()
-    }
-  },
-  methods: {
-    get_todo_num() {
-      // getTodoNum().then(notify_num => {
-      //   this.$store.dispatch('permission/updateNotifyNum', notify_num).then(() => {
-      //     setTimeout(this.get_todo_num, 60000)
-      //   })
-      // }).catch(err => {
-      //   console.log(err.message)
-      // })
     }
   }
 }

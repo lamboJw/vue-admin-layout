@@ -1,0 +1,74 @@
+/* 公共样式 */
+html, body {
+  height: 100%;
+  font-family: "微软雅黑";
+}
+.text-no-wrap {
+  white-space: nowrap;
+}
+.cursor {
+  cursor: pointer;
+}
+
+#app {
+  height: 100%;
+}
+
+.mr10 {
+  margin-right: 10px;
+}
+.d-input {
+  width: 426px
+}
+
+.el-icon-rmb {
+  background: url("~@/assets/images/icon-rmb.png") center no-repeat;
+  background-size: cover;
+  font-size: 23px;
+  max-width: 23px;
+}
+
+.el-icon-rmb:before{
+  content: "\e611";
+  font-size: 23px;
+  visibility: hidden;
+}
+
+.el-icon-paid {
+  background: url("~@/assets/images/icon-paid.png") center no-repeat;
+  background-size: cover;
+  font-size: 23px;
+  max-width: 23px;
+}
+
+.el-icon-paid:before{
+  content: "\e611";
+  font-size: 23px;
+  visibility: hidden;
+}
+
+.middle-text {
+  display: inline-block;
+  padding: 9px;
+  line-height: 14px;
+  font-size: 14px;
+  color: #999;
+}
+
+.copy-text {
+  cursor: pointer;
+}
+
+.price-tip {
+  background: rgb(236, 245, 255);
+  border-color: rgb(179, 216, 255);
+  font-weight: 500;
+  line-height: 1;
+  font-size: 14px;
+  color: #409eff;
+  padding: 12px 20px;
+  margin-top: 5px;
+}
+.price-tip span {
+  color: #e6a23c;
+}

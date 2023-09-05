@@ -13,7 +13,7 @@ const name = defaultSettings.title || 'vue Admin Template' // page title
 // For example, Mac: sudo npm run
 // You can change the port by the following methods:
 // port = 9528 npm run dev OR npm run dev --port = 9528
-const port = process.env.port || process.env.npm_config_port || 9528 // dev port
+const port = process.env.port || process.env.npm_config_port || 8081 // dev port
 
 // All configuration item explanations can be find in https://cli.vuejs.org/config/
 module.exports = {
@@ -30,20 +30,25 @@ module.exports = {
   lintOnSave: process.env.NODE_ENV === 'development',
   productionSourceMap: false,
   devServer: {
-    port: port, // 开发服务器端口
+    host: 'client.custom_service.com',
+    port: port,
     open: true,
-    host: 'www.sdk.com', // 开发环境下前端域名
+    https: false,
+    hotOnly: false,
     overlay: {
       warnings: false,
       errors: true
     },
     proxy: {
-      '/backend': {
+      '/api': {
         // 此处的写法，目的是为了 将uri前缀为 /backend 的请求，域名都换成 http://www.sdk.com，以解决跨域问题
-        target: 'http://www.sdk.com/', // 后端域名
+        target: 'http://api.custom_service.com', // 后端域名
         // 允许跨域
         changeOrigin: true,
-        ws: true
+        ws: true,
+        pathRewrite: {
+          '^/api': '' // 去掉额外添加的/api路径
+        }
       }
     }
   },

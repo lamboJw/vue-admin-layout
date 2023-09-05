@@ -16,6 +16,9 @@
 `this.total_count`：列表总数  
 `this.list`：当前页列表数量
 5. 修改请求列表的分页信息：`src/const/constant.js`中`pager`变量，修改`page_name`和`page_size_name`。
+6. 菜单显示方式有两种，纯侧边栏，以及顶栏+侧边栏。在`src/settings.js`中修改`menuType`可以切换。
+   + `left`：仅在侧边栏显示
+   + `top-left`：顶部显示一级路由，侧边栏显示二级及以下路由
 
 ## 使用
 ### 数据表格

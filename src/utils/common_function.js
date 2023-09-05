@@ -1,5 +1,7 @@
 import { Message } from 'element-ui'
 import { saveAs } from 'file-saver'
+import store from '@/store'
+import { common } from '@/const/constant'
 
 // 根据Date类型变量，返回格式化的日期时间，支持年、月、日、时、分、秒
 export function getDateTime(date, format = 'yyyy-MM-dd') {
@@ -83,12 +85,6 @@ export function combineUrl(url) {
   return url
 }
 
-/**
- * 获取两个月份相差多少个月
- * @param startMonth
- * @param endMonth
- * @returns {number}
- */
 export function diffMonths(startMonth, endMonth) {
   const m1 = startMonth.split('-')
   const sMonths = parseInt(m1[0]) * 12 + parseInt(m1[1])
@@ -97,12 +93,6 @@ export function diffMonths(startMonth, endMonth) {
   return Math.abs(sMonths - eMonths)
 }
 
-/**
- * 获取文字宽度
- * @param text
- * @param fontSize
- * @returns {number}
- */
 export function getTextWidth(text, fontSize) {
   // 创建临时元素
   const _span = document.createElement('span')
@@ -137,11 +127,6 @@ export function arrayRange(start, end = null) {
   return Array.from({ length }, (_, index) => index + start)
 }
 
-/**
- * 下载url对应的文件
- * @param url
- * @param name
- */
 export const downloadUrl = (url, name = '') => {
   fetch(url)
     .then(res => res.blob())
@@ -159,11 +144,6 @@ export const downloadUrl = (url, name = '') => {
     })
 }
 
-/**
- * 十六进制颜色值转rgb
- * @param hex
- * @returns {{r: number, b: number, g: number}|null}
- */
 export function hexToRgb(hex) {
   // Hex（十六进制）、Dec（十进制）、Octal（八进制）、Bin（二进制）
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -191,25 +171,12 @@ export function objectToArray(obj, key = 'id', value = 'name') {
   return arr
 }
 
-/**
- * 判断对象是否存在key值
- * @param obj
- * @param key
- * @returns {boolean}
- */
 export function objectHasKey(obj, key) {
   return !!Object.getOwnPropertyDescriptor(obj, key)
 }
 
-/**
- * 获取对象中的key对应的值
- * @param obj
- * @param key
- * @param default_val
- * @returns {*|null}
- */
 export function objectGetValue(obj, key, default_val = null) {
-  return this.objectHasKey(obj, key) ? obj[key] : default_val
+  return objectHasKey(obj, key) ? obj[key] : default_val
 }
 
 export function objectLength(obj) {
@@ -239,10 +206,6 @@ export function objectArrayFindIndex(array, key, val) {
   return array?.findIndex((item) => item[key] === val)
 }
 
-/**
- * 获取客户端高度
- * @returns {number}
- */
 export function getClientHeight() {
   let clientHeight
   if (document.body.clientHeight && document.documentElement.clientHeight) {
@@ -259,11 +222,6 @@ export function getClientHeight() {
   return clientHeight
 }
 
-/**
- * 判断是否为数字
- * @param value
- * @returns {boolean}
- */
 export function isNumeric(value) {
   return !isNaN(parseFloat(value)) && isFinite(value)
 }
@@ -275,13 +233,6 @@ export function getWidth(width, unit = 'px') {
   return width
 }
 
-/**
- * 格式化数字
- * @param number
- * @param {number} decimals 保留小数位
- * @param {string} thousands_sep 千位分隔符
- * @returns {string|*}
- */
 export function numberFormat(number, decimals = 0, thousands_sep = '') {
   if (number === null || number === '' || number === undefined || !isNumeric(number)) {
     return number
@@ -303,11 +254,6 @@ export function numberFormat(number, decimals = 0, thousands_sep = '') {
   return thousands_sep !== '' ? number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, thousands_sep) : number.toString()
 }
 
-/**
- * 加载外部JS
- * @param src
- * @returns {Promise<unknown>}
- */
 export function loadJs(src) {
   return new Promise((resolve, reject) => {
     const script = document.createElement('script')
@@ -323,11 +269,6 @@ export function loadJs(src) {
   })
 }
 
-/**
- * 加载外部CSS
- * @param src
- * @returns {Promise<unknown>}
- */
 export function loadCss(src) {
   return new Promise((resolve, reject) => {
     const link = document.createElement('link')
@@ -341,4 +282,47 @@ export function loadCss(src) {
       reject()
     }
   })
+}
+
+/**
+ * 检查当前操作人
+ * @param {string[] | number[] | number | string} operator 操作人uid数组
+ * @param {boolean} admin 是否允许超管操作
+ * @returns {boolean}
+ */
+export function checkOperator(operator, admin = false) {
+  if (Array.isArray(operator)) {
+    operator.map((item, index) => {
+      operator[index] = item + ''
+    })
+  } else {
+    operator = [operator + '']
+  }
+  const uid = store.getters.uid.toString()
+  let auth = false
+  if (operator.includes(uid)) {
+    auth = true
+  }
+  if (admin && uid === common.admin_uid) {
+    auth = true
+  }
+  return auth
+}
+
+export function getColor(color) {
+  if (color[0] === '#') return color
+  color = common.color.getAttr(color, color)
+  return color
+}
+
+/**
+ * 检查当前主体是否包含在数组中
+ * @param {string[]} main_arr 主体数组
+ * @returns {boolean}
+ */
+export function checkMain(main_arr = []) {
+  const match = main_arr.filter((item) => {
+    return process.env.VUE_APP_NAME === `CS_${item}`
+  })
+  return match.length > 0
 }

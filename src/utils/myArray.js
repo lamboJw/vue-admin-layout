@@ -4,6 +4,9 @@ import { math } from '@/utils/math'
 class MyArray extends Array {
   constructor(arr = []) {
     if (arr === null || arr === undefined) arr = []
+    if (!Array.isArray(arr)) {
+      throw new Error('MyArray：传入参数不是数组')
+    }
     super(...arr)
     for (const k in this) {
       if (typeof this[k] === 'object' && this[k] !== null) {
@@ -66,7 +69,7 @@ class MyArray extends Array {
    */
   sum() {
     return this.reduce((acc, cur) => {
-      return math.add(acc, cur)
+      return math.add(math.bignumber(acc), math.bignumber(cur))
     })
   }
 }

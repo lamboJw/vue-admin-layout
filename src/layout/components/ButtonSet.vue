@@ -14,7 +14,7 @@
           @mouseover.native="set_background_color(index)"
           @mouseout.native="set_background_color(index, 'out')"
         >
-          {{ typeof show_button[index].text === 'function' ? show_button[index].text(scope) : show_button[index].text }}
+          {{ typeof show_button[index].text === "function" ? show_button[index].text(scope) : show_button[index].text }}
         </el-button>
       </template>
     </template>
@@ -32,7 +32,7 @@
               @mouseover.native="set_background_color(index)"
               @mouseout.native="set_background_color(index, 'out')"
             >
-              {{ typeof show_button[index].text === 'function' ? show_button[index].text(scope) : show_button[index].text }}
+              {{ typeof show_button[index].text === "function" ? show_button[index].text(scope) : show_button[index].text }}
             </el-button>
           </div>
         </template>
@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { arrayRange, hexToRgb } from '@/utils/common_function'
+import { arrayRange, getColor, hexToRgb } from '@/utils/common_function'
 
 export default {
   name: 'ButtonSet',
@@ -90,12 +90,12 @@ export default {
           if (Array.isArray(item['v-permission'])) {
             let res = false
             item['v-permission'].forEach((val) => {
-              if (this.$store.getters.role.includes(val)) {
+              if (this.$store.getters.permissions.includes(val)) {
                 res = true
               }
             })
             return res
-          } else if (!this.$store.getters.role.includes(item['v-permission'])) {
+          } else if (!this.$store.getters.permissions.includes(item['v-permission'])) {
             return false
           }
         }
@@ -105,29 +105,8 @@ export default {
         const style = {}
         if (!item.hasKey('color')) {
           style.color = '#409EFF'
-        } else if (item.color[0] !== '#') {
-          switch (item.color) {
-            case 'success':
-              style.color = '#67C23A'
-              break
-            case 'warning':
-              style.color = '#E6A23C'
-              break
-            case 'danger':
-              style.color = '#F56C6C'
-              break
-            case 'info':
-              style.color = '#909399'
-              break
-            case 'normal':
-              style.color = '#606266'
-              break
-            case 'primary':
-            default:
-              style.color = '#409EFF'
-          }
         } else {
-          style.color = item.color
+          style.color = getColor(item.color)
         }
         const rgb = this.hexToRgb(style.color)
         style.background_color = `rgba(${rgb.r},${rgb.g},${rgb.b},0.10)`

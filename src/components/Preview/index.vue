@@ -30,6 +30,8 @@
 </template>
 
 <script>
+import { previewDoc } from '@/api/common'
+import Vue from 'vue'
 import ElImageViewer from 'element-ui/packages/image/src/image-viewer'
 import '@vue-office/excel/lib/index.css'
 import VueOfficeDocx from '@vue-office/docx'
@@ -81,6 +83,16 @@ export default {
         this.fileType = 'docx'
         this.loading_text = '正在加载word文件...'
         this.loading = true
+        this.viewVisible = true
+      } else if (/\.doc$/.test(this.filesrc)) {
+        this.loading_text = '正在转换word文档...'
+        this.loading = true
+        previewDoc(this.filesrc.replace(Vue.prototype.BASE_URL, '')).then(
+          (res) => {
+            this.fileType = 'pdf'
+            this.src = Vue.prototype.BASE_URL + this.encodeUrl(res.result.pdf_path)
+          }
+        )
         this.viewVisible = true
       } else if (/\.(png|jpg|jpeg|bmp|gif|svg$)/.test(this.filesrc)) {
         this.fileType = 'img'
@@ -144,6 +156,18 @@ export default {
               this.$message.error('加载excel文件失败')
               return
             }
+            exportJson.sheets.forEach((sheet, index) => {
+              const new_cell_data = []
+              sheet.celldata.forEach((cell) => {
+                if (cell.c <= 99 && cell.r <= 4999) {
+                  if (typeof cell.v.ct !== 'undefined' && typeof cell.v.ct.fa !== 'undefined' && /###,##0\.00/.test(cell.v.ct.fa)) {
+                    cell.v.ct.fa = '###,###.00'
+                  }
+                  new_cell_data.push(cell)
+                }
+              })
+              exportJson.sheets[index].celldata = new_cell_data
+            })
             // 销毁原来的表格
             window.luckysheet.destroy()
             // 重新创建新表格

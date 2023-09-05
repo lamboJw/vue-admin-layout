@@ -26,16 +26,16 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 
 export default {
+  name: 'SingleFileUpload',
   props: {
     fileUrl: { type: String, default: '' }, // 传值是记得加上.sync事件
     fileName: { type: String, default: '' }, // 传值是记得加上.sync事件
     showFileList: { type: Boolean, default: true },
     tips: { type: String, default: '' },
     tipsDisplay: { type: String, default: 'inline' },
-    uploadUrl: { type: String, default: '/admin/upload' },
+    uploadUrl: { type: String, default: '/upload/index' },
     successCallback: {
       type: Function, default: (response, file, fileList) => {
       }
@@ -57,15 +57,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters([
-      'csrf_token'
-    ]),
     upload_headers() {
-      return { 'X-CSRF-TOKEN': this.csrf_token }
+      return {}
     },
     file_url: {
       get: function() {
-        return this.fileUrl.indexOf('http') > -1 ? this.fileUrl : process.env.VUE_APP_HOST + this.fileUrl.replace(/^\/?/, '')
+        return this.fileUrl.indexOf('http') > -1 ? this.fileUrl : process.env.VUE_APP_BASE_API + this.fileUrl
       },
       set: function(newValue) {
         this.$emit('update:fileUrl', newValue)

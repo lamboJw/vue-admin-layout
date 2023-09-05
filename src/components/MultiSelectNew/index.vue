@@ -48,7 +48,7 @@
 
 <script>
 export default {
-  name: 'MultiSelect',
+  name: 'MultiSelectNew',
   props: {
     options: {
       type: Array,

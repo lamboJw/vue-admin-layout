@@ -38,6 +38,7 @@
       :table-params="tableParams"
       :table-id="tableId"
       :total-count="totalCount"
+      :row-class="rowClass"
       @select="table_select"
       @select-all="table_select_all"
       @selection-change="table_selection_change"
@@ -55,6 +56,12 @@
       <template v-for="item in tableColumn.filter((v) => v.template === 'slot')" v-slot:[item.slot_name]="scope">
         <slot :name="item.slot_name" v-bind="scope" />
       </template>
+      <template v-slot:table>
+        <slot name="table" />
+      </template>
+      <template v-slot:table_bottom>
+        <slot name="table_bottom" />
+      </template>
     </table-layout>
     <div class="dialog-container">
       <slot name="dialog" />
@@ -65,6 +72,7 @@
 <script>
 import TableLayout from '@/layout/components/TableLayout'
 import FormLayout from '@/layout/components/FormLayout'
+import { common } from '@/const/constant'
 
 export default {
   name: 'FormTableLayout',
@@ -77,7 +85,7 @@ export default {
       // 筛选信息
       type: Object,
       default: function() {
-        return { prePage: 10, page: 1 }
+        return { [common.pager.page_size_name]: common.pager.default_page_size, [common.pager.page_name]: 1 }
       },
       required: true
     },
@@ -95,7 +103,7 @@ export default {
       // 可用分页数量
       type: Array,
       default: function() {
-        return [10, 15, 20, 50, 100, 200]
+        return common.pager.page_sizes
       }
     },
     tableParams: {
@@ -131,6 +139,7 @@ export default {
     // 传了tableColumn参数后，该参数不为空时可开启“显示列”功能，传入tableColumn时需要加上.sync修饰符。
     // 如果有多选框，之类的没有标题的列，也需要把标题加上
     tableColumnStorageName: { type: String, default: '' },
+    rowClass: { type: [Function, String], default: null }, // 行类名
     firstReload: { type: Boolean, default: true }, // 挂载完成时是否读取列表
     tableId: { type: String, default: '' }, // 表格id
     showTable: { type: Boolean, default: true }, // 是否显示表格

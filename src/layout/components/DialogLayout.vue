@@ -10,10 +10,10 @@
       :fullscreen="fullscreen && !sideBar"
       :close-on-click-modal="sideBar"
       :append-to-body="appendToBody"
-      @open="open_callback"
-      @close="$emit('close')"
       :custom-class="sideBarClass"
       :class="sideBarClass"
+      @open="open_callback"
+      @close="$emit('close')"
     >
       <div
         class="el-dialog-div"
@@ -28,67 +28,67 @@
       <div v-if="showFooter" slot="footer" class="dialog-footer">
         <slot name="other_footer" />
         <el-button @click="close_dialog()">取消</el-button>
-        <el-button type="primary" @click="submit()" :disabled="loading">提交</el-button>
+        <el-button type="primary" :disabled="loading" @click="submit()">提交</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 
 <script>
-import { loading_common } from "@/layout/mixin/loading_common";
+import { loading_common } from '@/layout/mixin/loading_common'
 
 export default {
-  name: "DialogLayout",
+  name: 'DialogLayout',
   mixins: [loading_common],
   props: {
     visible: { type: Boolean, default: false, required: true },
     open: { type: Function, default: null }, // 打开对话框时需要执行的方法，默认是init
-    title: { type: String, default: "" },
+    title: { type: String, default: '' },
     loading: { type: Boolean, default: false, required: true },
-    width: { type: String, default: "50%" },
-    height: { type: String, default: "50vh" },
-    top: { type: String, default: "15vh" },
+    width: { type: String, default: '50%' },
+    height: { type: String, default: '50vh' },
+    top: { type: String, default: '15vh' },
     fullscreen: { type: Boolean, default: false },
     appendToBody: { type: Boolean, default: false }, // 当前对话框为嵌套时，必须设置为true
     showFooter: { type: Boolean, default: true },
     dialogParams: {
       type: Object,
-      default: function () {
-        return {};
-      },
-    },
-    sideBar: { type: Boolean, default: false }, //使弹出框改为从右往左滑出的侧边栏，宽度以width参数为准
-  },
-  inject: ["close_dialog", "submit", "init"],
-  computed: {
-    dialog_visible: {
-      get: function () {
-        return this.visible;
-      },
-      set: function () {
-        this.close_dialog();
-      },
-    },
-    open_callback: function () {
-      if (this.open === null) {
-        return this.init;
-      } else {
-        return this.open;
+      default: function() {
+        return {}
       }
     },
-    dialog_params: function () {
-      const default_params = {};
+    sideBar: { type: Boolean, default: false } // 使弹出框改为从右往左滑出的侧边栏，宽度以width参数为准
+  },
+  inject: ['close_dialog', 'submit', 'init'],
+  computed: {
+    dialog_visible: {
+      get: function() {
+        return this.visible
+      },
+      set: function() {
+        this.close_dialog()
+      }
+    },
+    open_callback: function() {
+      if (this.open === null) {
+        return this.init
+      } else {
+        return this.open
+      }
+    },
+    dialog_params: function() {
+      const default_params = {}
       return Object.assign(
         default_params,
         this.dialogParams,
         this.loading_props
-      );
+      )
     },
-    sideBarClass: function () {
-      return !this.fullscreen && this.sideBar ? "sideBar" : "";
-    },
-  },
-};
+    sideBarClass: function() {
+      return !this.fullscreen && this.sideBar ? 'sideBar' : ''
+    }
+  }
+}
 </script>
 
 <style lang="scss" scoped>

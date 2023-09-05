@@ -9,6 +9,7 @@
         element-loading-text="Loading"
         v-bind="table_params"
         :cell-class-name="cell_class"
+        :row-class-name="rowClass"
         @select="table_select"
         @select-all="table_select_all"
         @selection-change="table_selection_change"
@@ -30,15 +31,15 @@
               "
               v-slot:table_expand="scope"
             >
-              <slot name="table_expand" v-bind="scope"></slot>
+              <slot name="table_expand" v-bind="scope" />
             </template>
             <template
-              v-for="item in show_table_column.filter((v) => {
+              v-for="slot_item in show_table_column.filter((v) => {
                 return v.template === 'slot';
               })"
               v-slot:[item.slot_name]="scope"
             >
-              <slot :name="item.slot_name" v-bind="scope"></slot>
+              <slot :name="slot_item.slot_name" v-bind="scope" />
             </template>
           </table-column-layout>
         </template>
@@ -53,10 +54,7 @@
         width="500"
         trigger="click"
       >
-        <el-checkbox-group
-          v-model="table_column_checked"
-          :style="{ display: 'flex', 'flex-wrap': 'wrap' }"
-        >
+        <el-checkbox-group v-model="table_column_checked" :style="{ display: 'flex', 'flex-wrap': 'wrap' }">
           <el-checkbox
             v-for="(item, index) in table_column_options"
             :key="`${item.field}${index}`"
@@ -66,17 +64,18 @@
         </el-checkbox-group>
         <el-button slot="reference" type="primary" style="margin-right: 10px">显示列</el-button>
       </el-popover>
+      <slot name="table_bottom" />
       <el-pagination
         v-if="show_pagination"
-        :current-page="form.page"
+        :current-page="form[page_name]"
         :page-sizes="pageSizes"
-        :page-size="form.prePage"
+        :page-size="form[page_size_name]"
         :total="totalCount"
         background
         layout="total, sizes, prev, pager, next, jumper"
+        style="float: right"
         @size-change="handle_limit_change"
         @current-change="handle_page_change"
-        style="float: right"
       />
     </div>
   </div>
@@ -86,6 +85,7 @@
 import { copyToClipboard } from '@/utils/common_function'
 import TableColumnLayout from '@/layout/components/TableColumnLayout'
 import { MyArray } from '@/utils/myArray'
+import { common } from '@/const/constant'
 
 export default {
   name: 'TableLayout',
@@ -114,7 +114,7 @@ export default {
       // 可用分页数量
       type: Array,
       default: function() {
-        return [10, 15, 20, 50, 100, 200]
+        return common.pager.page_sizes
       }
     },
     tableParams: {
@@ -170,26 +170,26 @@ export default {
     firstReload: { type: Boolean, default: true }, // 挂载完成时是否读取列表
     tableId: { type: String, default: '' }, // 表格id
     showTable: { type: Boolean, default: true }, // 是否显示表格
-    fetcher: { type: Function, default: null } // 指定获取列表的方法
+    fetcher: { type: Function, default: null }, // 指定获取列表的方法
+    rowClass: { type: [Function, String], default: null } // 行类名
   },
   data() {
     return {
       show_table_column: new MyArray(this.tableColumn),
       table_column_options: new MyArray(this.tableColumn),
       show_list: [],
-      summary_row: []
+      summary_row: [],
+      page_name: common.pager.page_name,
+      page_size_name: common.pager.page_size_name
     }
   },
   inject: ['fetch_data'],
   computed: {
     show_pagination: function() {
-      return typeof this.form.prePage !== 'undefined' && this.form.prePage > 0
+      return typeof this.form[this.page_size_name] !== 'undefined' && this.form[this.page_size_name] > 0
     },
     show_column_select: function() {
-      return (
-        this.table_column_options.length > 0 &&
-        this.tableColumnStorageName !== ''
-      )
+      return (this.table_column_options.length > 0 && this.tableColumnStorageName !== '')
     },
     table_params: function() {
       const default_params = {
@@ -282,27 +282,27 @@ export default {
   },
   methods: {
     handle_limit_change(val) {
-      this.form.prePage = val
+      this.form[this.page_size_name] = val
       this.paginationType === 'server'
         ? this.list_fetcher()
         : this.local_pagination()
     },
     handle_page_change(val) {
-      this.form.page = val
+      this.form[common.pager.page_name] = val
       this.paginationType === 'server'
         ? this.list_fetcher()
         : this.local_pagination()
     },
     local_pagination() {
       let offset = this.show_pagination
-        ? (this.form.page - 1) * this.form.prePage
+        ? (this.form[common.pager.page_name] - 1) * this.form[common.pager.page_size_name]
         : 0
       if (this.firstRowSummary) {
         offset += 1
       }
       this.show_list = this.list.slice(
         offset,
-        this.show_pagination ? offset + this.form.prePage : undefined
+        this.show_pagination ? offset + this.form[common.pager.page_size_name] : undefined
       )
       if (this.firstRowSummary) {
         this.show_list.unshift(this.summary_row)

@@ -13,6 +13,7 @@ import store from './store'
 import router from './router'
 
 import '@/icons' // icon
+import '@/use'
 import '@/permission' // permission control
 import '@/directive/permission' // 自定义权限指令
 
@@ -22,10 +23,6 @@ import '@/directive/permission' // 自定义权限指令
 Vue.use(ElementUI, { size: 'small' })
 
 Vue.config.productionTip = false
-
-import { constants } from '@/const/constant'
-
-Vue.prototype.constants = constants
 
 new Vue({
   el: '#app',

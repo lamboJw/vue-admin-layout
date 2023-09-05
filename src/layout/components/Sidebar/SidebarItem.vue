@@ -1,22 +1,41 @@
 <template>
   <div v-if="!item.hidden">
-    <template v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow">
+    <template
+      v-if="
+        hasOneShowingChild(item.children, item) &&
+          (!onlyOneChild.children || onlyOneChild.noShowingChildren) &&
+          !item.alwaysShow
+      "
+    >
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path)">
-        <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{'submenu-title-noDropdown':!isNest}">
-          <el-badge v-if="onlyOneChild.meta.notify_num > 0" :value="onlyOneChild.meta.notify_num" />
-          <item :icon="onlyOneChild.meta.icon||(item.meta&&item.meta.icon)" :title="onlyOneChild.meta.title" />
+        <el-menu-item
+          :index="resolvePath(onlyOneChild.path)"
+          :class="{ 'submenu-title-noDropdown': !isNest }"
+        >
+          <item
+            :icon="onlyOneChild.meta.icon || (item.meta && item.meta.icon)"
+            :title="onlyOneChild.meta.title"
+          />
         </el-menu-item>
       </app-link>
     </template>
 
-    <el-submenu v-else ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
+    <el-submenu
+      v-else
+      ref="subMenu"
+      :index="resolvePath(item.path)"
+      popper-append-to-body
+    >
       <template slot="title">
-        <item v-if="item.meta" :icon="item.meta && item.meta.icon" :title="item.meta.title" />
-        <el-badge v-if="item.meta.notify_num > 0" :value="item.meta.notify_num" />
+        <item
+          v-if="item.meta"
+          :icon="item.meta && item.meta.icon"
+          :title="item.meta.title"
+        />
       </template>
       <sidebar-item
         v-for="child in item.children"
-        :key="child.name"
+        :key="child.path"
         :is-nest="true"
         :item="child"
         :base-path="resolvePath(child.path)"
@@ -31,7 +50,7 @@ import path from 'path'
 import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
-import FixiOSBug from './FixiOSBug'
+import FixiOSBug from './FixiOSBug.js'
 
 export default {
   name: 'SidebarItem',
@@ -56,11 +75,12 @@ export default {
     // To fix https://github.com/PanJiaChen/vue-admin-template/issues/237
     // TODO: refactor with render function
     this.onlyOneChild = null
-    return {}
+    return {
+    }
   },
   methods: {
     hasOneShowingChild(children = [], parent) {
-      const showingChildren = children.filter(item => {
+      const showingChildren = children.filter((item) => {
         if (item.hidden) {
           return false
         } else {
@@ -77,7 +97,7 @@ export default {
 
       // Show parent if there are no child router to display
       if (showingChildren.length === 0) {
-        this.onlyOneChild = { ... parent, path: '', noShowingChildren: true }
+        this.onlyOneChild = { ...parent, path: '', noShowingChildren: true }
         return true
       }
 
@@ -95,10 +115,3 @@ export default {
   }
 }
 </script>
-<style scoped>
-.el-badge{
-  position: absolute;
-  top: 5px;
-  right: 40px;
-}
-</style>
