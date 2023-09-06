@@ -20,31 +20,11 @@
                 </el-select>
               </el-form-item>
             </el-col>
-            <el-col v-if="show_extra_option(item, 'teamwork_type')" :span="12">
-              <el-form-item label="合同类型" required>
+            <el-col v-if="show_extra_option(item, 'parent_game')" :span="12">
+              <el-form-item label="一级游戏" required>
                 <multi-select-new
-                  :value.sync="data_permission[item.key].teamwork_type"
-                  :options="teamwork_type_list"
-                  collapse-tags
-                  filterable
-                />
-              </el-form-item>
-            </el-col>
-            <el-col v-if="show_extra_option(item, 'coop_way')" :span="12">
-              <el-form-item label="合作类型" required>
-                <multi-select-new
-                  :value.sync="data_permission[item.key].coop_way"
-                  :options="coop_way_list"
-                  collapse-tags
-                  filterable
-                />
-              </el-form-item>
-            </el-col>
-            <el-col v-if="show_extra_option(item, 'our_main')" :span="12">
-              <el-form-item label="我方主体" required>
-                <multi-select-new
-                  :value.sync="data_permission[item.key].our_main"
-                  :options="our_main_list"
+                  :value.sync="data_permission[item.key].parent_game"
+                  :options="parentGameList"
                   collapse-tags
                   filterable
                 />
@@ -58,26 +38,6 @@
                   :props="{ multiple: true, checkStrictly: true }"
                   collapse-tags
                   clearable
-                  filterable
-                />
-              </el-form-item>
-            </el-col>
-            <el-col v-if="show_extra_option(item, 'pre_department')" :span="12">
-              <el-form-item label="申请部门">
-                <multi-select-new
-                  :value.sync="data_permission[item.key].pre_department"
-                  :options="pre_department_list"
-                  collapse-tags
-                  filterable
-                />
-              </el-form-item>
-            </el-col>
-            <el-col v-if="show_extra_option(item, 'specify_person')" :span="12">
-              <el-form-item label="人员选择">
-                <multi-select-new
-                  :value.sync="data_permission[item.key].specify_person"
-                  :options="userList"
-                  collapse-tags
                   filterable
                 />
               </el-form-item>
@@ -104,31 +64,11 @@
                   </el-select>
                 </el-form-item>
               </el-col>
-              <el-col v-if="show_extra_option(child_item, 'teamwork_type')" :span="12">
-                <el-form-item label="合同类型" required>
+              <el-col v-if="show_extra_option(child_item, 'parent_game')" :span="12">
+                <el-form-item label="一级游戏" required>
                   <multi-select-new
-                    :value.sync="data_permission[child_item.key].teamwork_type"
-                    :options="teamwork_type_list"
-                    collapse-tags
-                    filterable
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col v-if="show_extra_option(child_item, 'coop_way')" :span="12">
-                <el-form-item label="合作类型" required>
-                  <multi-select-new
-                    :value.sync="data_permission[child_item.key].coop_way"
-                    :options="coop_way_list"
-                    collapse-tags
-                    filterable
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col v-if="show_extra_option(child_item, 'our_main')" :span="12">
-                <el-form-item label="我方主体" required>
-                  <multi-select-new
-                    :value.sync="data_permission[child_item.key].our_main"
-                    :options="our_main_list"
+                    :value.sync="data_permission[child_item.key].parent_game"
+                    :options="parentGameList"
                     collapse-tags
                     filterable
                   />
@@ -146,26 +86,6 @@
                   />
                 </el-form-item>
               </el-col>
-              <el-col v-if="show_extra_option(child_item, 'pre_department')" :span="12">
-                <el-form-item label="申请部门">
-                  <multi-select-new
-                    :value.sync="data_permission[child_item.key].pre_department"
-                    :options="pre_department_list"
-                    collapse-tags
-                    filterable
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col v-if="show_extra_option(child_item, 'specify_person')" :span="12">
-                <el-form-item label="人员选择">
-                  <multi-select-new
-                    :value.sync="data_permission[child_item.key].specify_person"
-                    :options="userList"
-                    collapse-tags
-                    filterable
-                  />
-                </el-form-item>
-              </el-col>
             </el-row>
           </el-form>
         </el-card>
@@ -176,7 +96,6 @@
 
 <script>
 import MultiSelectNew from '@/components/MultiSelectNew'
-import { MyObject } from '@/utils/myObject'
 import { MyArray } from '@/utils/myArray'
 import { common } from '@/const/constant'
 
@@ -187,25 +106,13 @@ export default {
   },
 
   props: {
-    ourMainList: {
-      type: Object,
-      default: function() {
-        return {}
-      }
-    },
-    dataPermission: {
-      type: Object,
-      default: function() {
-        return {}
-      }
-    },
-    userList: {
+    parentGameList: {
       type: Array,
       default: function() {
         return []
       }
     },
-    companyList: {
+    dataPermission: {
       type: Object,
       default: function() {
         return {}
@@ -216,34 +123,16 @@ export default {
       default: function() {
         return []
       }
-    },
-    preDepartmentList: {
-      type: Object,
-      default: function() {
-        return []
-      }
     }
   },
   data() {
     return {
       list_layout: new MyArray([
         {
-          title: '合同台账',
-          key: 'contract',
-          extra_options: ['teamwork_type', 'coop_way', 'our_main', 'specify_person', 'pre_department']
-        },
-        {
-          title: '计提对账',
+          title: '玩家管理',
           children: [
-            { title: '收入计提对账', key: 'accrual_income', extra_options: [] },
-            { title: '成本计提对账', key: 'accrual_cost', extra_options: [] }
-          ]
-        },
-        {
-          title: '账单结算',
-          children: [
-            { title: '收入账单结算', key: 'settle_income', extra_options: [] },
-            { title: '成本账单结算', key: 'settle_cost', extra_options: [] }
+            { title: '玩家列表', key: 'role_list', extra_options: ['parent_game'] },
+            { title: '充值玩家配置', key: 'role_status', extra_options: ['parent_game'] }
           ]
         },
         {
@@ -253,25 +142,13 @@ export default {
         }
       ]),
       default_data_permission: {
-        contract: {
+        role_list: {
           data_permission: 2,
-          teamwork_type: [],
-          coop_way: [],
-          our_main: [],
-          specify_person: [],
-          pre_department: []
+          parent_game: []
         },
-        accrual_income: {
-          data_permission: 2
-        },
-        accrual_cost: {
-          data_permission: 2
-        },
-        settle_income: {
-          data_permission: 2
-        },
-        settle_cost: {
-          data_permission: 2
+        role_status: {
+          data_permission: 2,
+          parent_game: []
         },
         file_box: {
           data_permission: 2
@@ -280,40 +157,25 @@ export default {
     }
   },
   computed: {
-    teamwork_type_list: function() {
-      return []
-    },
-    coop_way_list: function() {
-      return []
-    },
-    our_main_list: function() {
-      return new MyObject(this.ourMainList).toArray()
-    },
-    company_list() {
-      return new MyObject(this.companyList).toArray()
-    },
     data_permission: function() {
       if (Object.keys(this.dataPermission).length > 0) {
         if (Object.keys(this.default_data_permission).length === Object.keys(this.dataPermission).length) {
           // 新增完之前未有的权限后，返回dataPermission，防止死循环
           return this.dataPermission
         }
-        const list = Object.assign({}, this.dataPermission)
+        const list = JSON.parse(JSON.stringify(this.dataPermission))
         const exists_keys = Object.keys(list)
         for (const key in this.default_data_permission) {
           if (!exists_keys.includes(key)) {
             // 如果存在新添加的权限，则添加到原数据中
-            list[key] = Object.assign({}, this.default_data_permission[key])
+            list[key] = JSON.parse(JSON.stringify(this.default_data_permission[key]))
           }
         }
         // 返回的是一个新的对象，对于watch来说，是改变了数据的，因此会触发watch的update
         return list
       } else {
-        return Object.assign({}, this.default_data_permission)
+        return JSON.parse(JSON.stringify(this.default_data_permission))
       }
-    },
-    pre_department_list() {
-      return new MyObject(this.preDepartmentList).toArray()
     }
   },
   watch: {

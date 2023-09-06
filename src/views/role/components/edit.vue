@@ -19,12 +19,8 @@
         <el-tab-pane label="数据权限" name="data-permission">
           <data-permission
             ref="data-permission"
-            :our-main-list="our_main_list"
-            :user-list="user_list"
-            :company-list="company_list"
             :department-list="department_list"
-            :pre-department-list="pre_department_list"
-            :finance-user-list="finance_user_list"
+            :parent-game-list="parent_game_list"
             :data-permission.sync="info.data_permission"
           ></data-permission>
         </el-tab-pane>
@@ -39,7 +35,9 @@ import RoleInfo from './role-info'
 import FunctionPermission from './function-permission'
 import DataPermission from './data-permission'
 import { getPermissions, roleInfo, addRole, updRole } from '@/api/role'
-import { departmentUserTree, getAccount } from '@/api/account'
+import { departmentUserTree } from '@/api/account'
+import { getAllParentGame } from '@/api/common'
+import { MyObject } from '@/utils/myObject'
 
 export default {
   name: 'Edit',
@@ -61,12 +59,8 @@ export default {
         data_permission: {}
       },
       permission_list: [],
-      our_main_list: {},
-      user_list: [],
-      department_list: [],
-      pre_department_list: {},
-      company_list: {},
-      finance_user_list: []
+      parent_game_list: [],
+      department_list: []
     }
   },
   computed: {
@@ -90,11 +84,10 @@ export default {
           this.permission_list = res.result
         })
       }
-      if (this.user_list.length === 0) {
-        getAccount({ page: 1, page_size: 999 }).then((res) => {
-          this.user_list = res.result.data.map((item) => {
-            return { id: item.id + '', name: item.name }
-          })
+      if (this.parent_game_list.length === 0) {
+        getAllParentGame().then((res) => {
+          console.log(res)
+          this.parent_game_list = new MyObject(res.result).toArray()
         })
       }
       if (this.department_list.length === 0) {
