@@ -95,10 +95,7 @@ export default {
   },
   methods: {
     fetch_api() {
-      const form = Object.assign({}, this.form)
-      form.page_size = form.prePage
-      delete form.prePage
-      return getAccount(form)
+      return getAccount(this.form)
     },
     accountStatus(action, row) {
       if (row === null && this.table_selection.length === 0) {
