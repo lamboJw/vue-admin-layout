@@ -4,6 +4,7 @@
     :key="`${item.type}${index}`"
     :type="item.type"
     :min-width="item.getAttr('min_width', '100px')"
+    :fixed="item.getAttr('fixed', false)"
   >
     <template slot-scope="{ row, column, $index, store }">
       <slot
@@ -19,6 +20,7 @@
     :key="`${item.type}${index}`"
     :type="item.type"
     :min-width="item.getAttr('min_width', '100px')"
+    :fixed="item.getAttr('fixed', false)"
   />
   <el-table-column
     v-else
@@ -60,7 +62,7 @@
         </el-select>
         <span
           v-else-if="item.template === 'str_map'"
-          :style="{ color: getColor(item, row) }"
+          :style="{ color: getMapColor(item, row) }"
         >
           {{ item.hasKey("str_map") ? item.str_map.getAttr(row[item.field], "") : "" }}
         </span>
@@ -107,7 +109,12 @@
         />
       </template>
       <template v-else-if="item.field">
-        {{ row[item.field] }}{{ row[item.field] ? item.getAttr("unit", "") : "" }}
+        <span v-if="item.hasKey('color')" :style="{color: getRowColor(item, row)}">
+          {{ row[item.field] }}{{ row[item.field] ? item.getAttr("unit", "") : "" }}
+        </span>
+        <template v-else>
+          {{ row[item.field] }}{{ row[item.field] ? item.getAttr("unit", "") : "" }}
+        </template>
       </template>
     </template>
   </el-table-column>
@@ -135,6 +142,7 @@ export default {
   methods: {
     combineUrl,
     getWidth,
+    getColor,
     imageClickHandler() {
       this.$nextTick(() => {
         const domImageMask = document.querySelector('.el-image-viewer__mask') // 获取遮罩层dom
@@ -147,11 +155,22 @@ export default {
         })
       })
     },
-    getColor(item, row) {
+    getMapColor(item, row) {
       const color = item.hasKey('color')
         ? item.color.getAttr(row[item.field], '#666')
         : '#666'
       return getColor(color)
+    },
+    getRowColor(item, row) {
+      if (!item.hasKey('color')) {
+        return '#666'
+      }
+      const color = item.getAttr('color', '#666')
+      if (color[0] === '#') {
+        return color
+      } else {
+        return getColor(row[item.color])
+      }
     }
   }
 }
