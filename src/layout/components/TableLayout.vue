@@ -23,23 +23,11 @@
       >
         <template v-for="(item, index) in show_table_column">
           <table-column-layout :key="`${item.field}${index}`" :item="item" :index="index">
-            <template
-              v-if="
-                tableColumn.filter((v) => {
-                  return v.type === 'expand';
-                }).length > 0
-              "
-              v-slot:table_expand="scope"
-            >
+            <template v-if="tableColumn.filter((v) => v.type === 'expand').length > 0" v-slot:table_expand="scope">
               <slot name="table_expand" v-bind="scope" />
             </template>
-            <template
-              v-for="slot_item in show_table_column.filter((v) => {
-                return v.template === 'slot';
-              })"
-              v-slot:[item.slot_name]="scope"
-            >
-              <slot :name="slot_item.slot_name" v-bind="scope" />
+            <template v-if="item.template === 'slot'" v-slot:[item.slot_name]="scope">
+              <slot :name="item.slot_name" v-bind="scope" />
             </template>
           </table-column-layout>
         </template>
