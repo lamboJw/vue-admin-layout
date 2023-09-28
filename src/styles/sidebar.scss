@@ -70,7 +70,9 @@ $sideBarWidth: 210px;
     }
 
     .svg-icon {
+      margin-left: 10px;
       margin-right: 16px;
+      font-size: 18px;
     }
 
     .el-menu {
@@ -90,7 +92,7 @@ $sideBarWidth: 210px;
 
     .is-active>.el-submenu__title {
       color: $subMenuActiveText !important;
-      
+
     }
     & .nest-menu .el-submenu>.el-submenu__title,
     & .el-submenu .el-menu-item {
@@ -121,10 +123,9 @@ $sideBarWidth: 210px;
 
       .el-tooltip {
         padding: 0 !important;
-
-        .svg-icon {
-          margin-left: 20px;
-        }
+      }
+      .svg-icon, .sub-el-icon {
+        margin-left: 20px;
       }
     }
 
